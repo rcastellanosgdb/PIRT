@@ -1,6 +1,11 @@
 # PIRT - Processing InfraRed Thermography
 <img src="logo/PIRT_color.png" alt="Alt text" title="PIRT - Processing InfraRed Thermography">
 
+## Examples / Test cases
+[Link to DropBox](https://www.dropbox.com/scl/fo/c9mxtyxs61hgn8up7iq38/h?rlkey=ic9glj0a8edfne8t4gikis2ae&dl=0)
+
+Access the test cases with available data and codes to use _PIRT_
+
 ## Introduction
 **PIRT** or Processing Infrared Thermography images is a Matlab toolbox for filtering snapshots, calculating heat transfer coefficients and estimating the error. The toolbox also features custom error messages to ease the image processing procedure. It has an object-based structure where the information introduced is labelled-based to make it as clear as possible. Two computation blocks can be distinguished; filter and heat transfer modules. They are independent and can be utilized by themselves.
 
