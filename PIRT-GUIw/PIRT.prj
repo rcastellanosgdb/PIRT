@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="C:\Users\juanc\OneDrive\Documentos\GitHub\PIRT_internal\PIRT-Matlab\PIRT.prj" location="C:\Users\juanc\OneDrive\Documentos\GitHub\PIRT_internal\PIRT-Matlab" name="PIRT" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration file="C:\Users\juanc\OneDrive\Escritorio\PIRT-main\PIRT-GUIw\PIRT.prj" location="C:\Users\juanc\OneDrive\Escritorio\PIRT-main\PIRT-GUIw" name="PIRT" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>PIRT</param.appname>
     <param.icon>${PROJECT_ROOT}\PIRT_resources\icon.ico</param.icon>
     <param.icons>
@@ -8,15 +8,15 @@
       <file>${PROJECT_ROOT}\PIRT_resources\icon_24.png</file>
       <file>${PROJECT_ROOT}\PIRT_resources\icon_16.png</file>
     </param.icons>
-    <param.version>1.0</param.version>
+    <param.version>0.1</param.version>
     <param.authnamewatermark />
-    <param.email>100428543@alumnos.uc3m.es</param.email>
-    <param.company>UC3M</param.company>
-    <param.summary>PIRT - Processing InfraRed Thermography</param.summary>
-    <param.description>PIRT or Processing Infrared Thermography images is a Matlab toolbox for filtering snapshots, calculating heat transfer coefficients and estimating the error. The toolbox also features custom error messages to ease the image processing procedure. It has an object-based structure where the information introduced is labelled-based to make it as clear as possible. Two computation blocks can be distinguished; filter and heat transfer modules. They are independent and can be utilized by themselves.</param.description>
+    <param.email />
+    <param.company />
+    <param.summary>PIRT</param.summary>
+    <param.description />
     <param.screenshot>${PROJECT_ROOT}\Images\PIRT_color.png</param.screenshot>
     <param.guid />
-    <param.installpath.string>\UC3M\PIRT\</param.installpath.string>
+    <param.installpath.string>\PIRT\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
     <param.install.notes />
@@ -46,12 +46,12 @@
 	 
  Input Arguments 
 	 -?  print help on how to use the application 
-	 input arguments 
- Description 
- 	 PIRT or Processing Infrared Thermography images is a Matlab toolbox for filtering snapshots, calculating heat transfer coefficients and estimating the error. The toolbox also features custom error messages to ease the image processing procedure. It has an object-based structure where the information introduced is labelled-based to make it as clear as possible. Two computation blocks can be distinguished; filter and heat transfer modules. They are independent and can be utilized by themselves.</param.help.text>
+	 input arguments</param.help.text>
     <unset>
-      <param.version />
       <param.authnamewatermark />
+      <param.email />
+      <param.company />
+      <param.description />
       <param.guid />
       <param.installpath.string />
       <param.installpath.combo />
@@ -83,8 +83,8 @@
       <file>${PROJECT_ROOT}\PIRT_GUI_V2.mlapp</file>
     </fileset.main>
     <fileset.resources>
-      <file>${PROJECT_ROOT}\src</file>
-      <file>${PROJECT_ROOT}\utils</file>
+      <file>C:\Users\juanc\OneDrive\Escritorio\PIRT-main\src</file>
+      <file>C:\Users\juanc\OneDrive\Escritorio\PIRT-main\utils</file>
     </fileset.resources>
     <fileset.package />
     <fileset.depfun>
@@ -102,9 +102,9 @@
       <file>${PROJECT_ROOT}\InputData\InputTables.mat</file>
     </fileset.depfun>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="splash.png" optional="false">C:\Users\juanc\OneDrive\Documentos\GitHub\PIRT_internal\PIRT-Matlab\PIRT\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="PIRT.exe" optional="false">C:\Users\juanc\OneDrive\Documentos\GitHub\PIRT_internal\PIRT-Matlab\PIRT\for_testing\PIRT.exe</file>
-      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="readme.txt" optional="true">C:\Users\juanc\OneDrive\Documentos\GitHub\PIRT_internal\PIRT-Matlab\PIRT\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="PIRT.exe" optional="false">C:\Users\juanc\OneDrive\Escritorio\PIRT-main\PIRT-GUIw\PIRT\for_testing\PIRT.exe</file>
+      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="readme.txt" optional="true">C:\Users\juanc\OneDrive\Escritorio\PIRT-main\PIRT-GUIw\PIRT\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\PIRT\for_testing" name="splash.png" optional="false">C:\Users\juanc\OneDrive\Escritorio\PIRT-main\PIRT-GUIw\PIRT\for_testing\splash.png</file>
     </build-deliverables>
     <workflow />
     <matlab>
