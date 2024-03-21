@@ -118,25 +118,16 @@ fields = fieldnames(obj.filter_params.gaussian_params{idx});
 extraargs = {};
 
 if ismember('FilterSize',fields)
-    extraargs{length(extraargs)+1} = 'FilterSize';
-    extraargs{length(extraargs)+1} = obj.filter_params.gaussian_params{idx}.FilterSize;
-end
-if ismember('Padding',fields)
-    extraargs{length(extraargs)+1} = 'Padding';
-    extraargs{length(extraargs)+1} = obj.filter_params.gaussian_params{idx}.Padding;
-end
-if ismember('FilterDomain',fields)
-    extraargs{length(extraargs)+1} = 'FilterDomain';
-    extraargs{length(extraargs)+1} = obj.filter_params.gaussian_params{idx}.FilterDomain;
+    extraargs{length(extraargs)+1} = obj.filter_params.gaussian_params{idx}.FilterSize
 end
 
 if ismember('Sigma',fields)
     obj.result.Thot_new = wiener3(Tmat,...
         obj.filter_params.gaussian_params{idx}.Sigma,...
-        extraargs);
+        extraargs;
 else
     [obj.result.Thot_new,obj.result.noise_hot] = wiener3(Tmat,...
-        extraargs);
+        extraargs;
 
 end
 

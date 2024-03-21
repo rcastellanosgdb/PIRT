@@ -119,7 +119,7 @@ elseif strcmp(filter,'gaussian')
     if ~iscell(params)
         error('PIRT:parse_PIRT_filter:If the gaussian filter is selected, extra parameters are required')
     end
-    gaussian_params = checksGaussian(params);
+    wiener3_params = checksGaussian(params);
     filter_type = 5;
 else
     error('PIRT:parse_PIRT_filter:A valid filter type must be selected')
@@ -397,25 +397,10 @@ if any(strcmp(params,'Padding'))
             gaussian_params.Padding = 'symmetric';
         otherwise
             if isfloat(params{idx+1})
-                gaussian_params.Padding = params{idx+1};
+            
             else
-                error('PIRT:parse_PIRT_filter: The introduced selection for the Padding in the imagaussfilt3 was not valid')
+                error('PIRT:parse_PIRT_filter: The introduced selection for the Padding in the imagaussfilt3
             end
-    end
-end
-
-if any(strcmp(params,'FilterDomain'))
-    idx = find(strcmp(params,'FilterDomain'));
-    switch params{idx+1}
-        case 'spatial'
-            gaussian_params.FilterDomain = 'spatial';
-        case 'frequency'
-            gaussian_params.FilterDomain = 'frequency';
-        case 'auto'
-            gaussian_params.FilterDomain = 'auto';
-        otherwise
-
-            error('PIRT:parse_PIRT_filter: The introduced selection for the FilterDomain in the imagaussfilt3 was not valid')
     end
 end
 
