@@ -80,11 +80,7 @@ if obj.HeatTransfer_params.time_der
         % Compute derivatives with gradient
         fields = fieldnames(obj.HeatTransfer_params.conditions);
         if any(strcmp(fields,'dt'))
-            % Obtain the derivative
-            disp('----Computing unsteady terms')
-            [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
-            disp('----Adding unsteady terms')
-            unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
+
         else
             warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
             unsteady = 0;
@@ -95,59 +91,40 @@ if obj.HeatTransfer_params.time_der
             disp('----Adding unsteady terms')
             unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
         else
-            % Compute derivatives with gradient
-            fields = fieldnames(obj.HeatTransfer_params.conditions);
-            if any(strcmp(fields,'dt'))
-                warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
-                % Obtain the derivative
-                disp('----Computing unsteady terms')
-                [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
-                disp('----Adding unsteady terms')
-                unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
-            else
-                warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
-                unsteady = 0;
-            end
+            warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
+            unsteady = 0;
         end
     else
         % Compute derivatives with gradient
-        fields = fieldnames(obj.HeatTransfer_params.conditions);
-        if any(strcmp(fields,'dt'))
-            warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
-            % Obtain the derivative
-            disp('----Computing unsteady terms')
-            [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+    end
+end
+
+if obj.HeatTransfer_params.time_der
+    if isempty(obj.filter_params)
+        warning('Unsteady term not computed. sgolay32 filter has to be performed on the hot images')
+        unsteady = 0;
+    elseif ~isempty(find(obj.filter_params.filter==3))
+        fields = fieldnames(obj.result);
+        if any(strcmp(fields,'dTdt_hot'))
             disp('----Adding unsteady terms')
             unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
         else
-            warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
+            warning('Unsteady term not computed. sgolay32 filter has to be performed on the hot images')
             unsteady = 0;
         end
+    else
+        warning('Unsteady term not computed. sgolay32 filter has to be performed on the hot images')
+        unsteady = 0;
     end
 else
-    unsteady = 0;
+    unsteady=0;
 end
-
 
 %-- Tangencial conduction heat flux
 if obj.HeatTransfer_params.spatial_der
     if isempty(obj.filter_params)
-        % Compute derivatives with gradient
-        fields = fieldnames(obj.HeatTransfer_params.conditions);
-        if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
-            % Obtain the derivative
-            disp('----Computing spatial terms')
-            [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
-            disp('----Adding spatial terms')
-            if isempty(PCB)
-                qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
-            else
-                qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
-            end
-        else
-            warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
-            qk = 0;
-        end
+        warning('Tangencial-conduction term not computed. sgolay32 filter has to be performed on the hot images.')
+        qk = 0;
     elseif ~isempty(find(obj.filter_params.filter==3))
         fields = fieldnames(obj.result);
         if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
@@ -158,43 +135,15 @@ if obj.HeatTransfer_params.spatial_der
                 qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
             end
         else
-            % Compute derivatives with gradient
-            fields = fieldnames(obj.HeatTransfer_params.conditions);
-            if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
-                % Obtain the derivative
-                disp('----Computing spatial terms')
-                [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
-                disp('----Adding spatial terms')
-                if isempty(PCB)
-                    qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
-                else
-                    qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
-                end
-            else
-                warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
-                qk = 0;
-            end
-        end
-    else
-        % Compute derivatives with gradient
-        fields = fieldnames(obj.HeatTransfer_params.conditions);
-        if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
-            % Obtain the derivative
-            disp('----Computing spatial terms')
-            [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
-            disp('----Adding spatial terms')
-            if isempty(PCB)
-                qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
-            else
-                qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
-            end
-        else
-            warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
+            warning('Tangencial-conduction term not computed. sgolay32 filter has to be performed on the hot images.')
             qk = 0;
         end
+    else
+        warning('Tangencial-conduction term not computed. sgolay32 filter has to be performed on the hot images.')
+        qk = 0;
     end
 else
-    qk = 0;
+    qk=0;
 end
 
 %Calculate heat

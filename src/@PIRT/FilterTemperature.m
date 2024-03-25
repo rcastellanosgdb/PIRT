@@ -72,6 +72,10 @@ switch obj.filter_params.filter(idx)
         disp('-- Gaussian filter Hot images')
         obj = iterateGaussian(obj,Thot,idx);
         disp('--> Thot DONE')
+    case 6 %cutoff filter
+        disp('-- Cutoff filter Hot images')
+        obj = iterateCutoff(obj,Thot,idx);
+        disp('--> Thot DONE')
     otherwise
         error('Please select one of the options available for filters')
 end
@@ -140,4 +144,25 @@ else
 
 end
 
+end
+
+function obj = iterateCutoff(obj,Tmat,idx)
+    params = obj.filter_params.cutoff_params{idx};
+
+    if ~isempty(params.Spatial)
+        if ~isempty(params.Temporal)
+            % Both
+            obj.result.Thot_new = Cutoff_Filter_3D(Tmat,'Spatial',params.Spatial{:},...
+                                    'Temporal',params.Temporal{1},params.Temporal{2:end});
+        else
+            % Spatial
+            obj.result.Thot_new = Cutoff_Filter_3D(Tmat,'Spatial',params.Spatial{:});
+        end
+    else
+        if ~isempty(params.Temporal)
+            % Temporal
+            obj.result.Thot_new = Cutoff_Filter_3D(Tmat,'Temporal',...
+                params.Temporal{1},params.Temporal{2:end});
+        end
+    end
 end

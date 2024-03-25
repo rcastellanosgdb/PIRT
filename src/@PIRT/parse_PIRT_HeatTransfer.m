@@ -214,6 +214,30 @@ if any(strcmp(varargin,'Conditions'))
             warning('PIRT:parse_PIRT_HeatTransfer:The Conditions free stream velocity must be intoduced to calculate the heat transfer if the St number is desired, it should be identified as "Uinf"')
         end
 
+        if any(strcmp(cond,'dx'))
+            idx = find(strcmp(cond,'dx'));
+            conditions.dx = cond{idx+1};
+            if ~isfloat(conditions.dx)
+                error('PIRT:parse_PIRT_HeatTransfer:The x resolution "dx" must be introduced as a float value')
+            end
+        end
+
+        if any(strcmp(cond,'dy'))
+            idx = find(strcmp(cond,'dy'));
+            conditions.dy = cond{idx+1};
+            if ~isfloat(conditions.dy)
+                error('PIRT:parse_PIRT_HeatTransfer:The y resolution "dy" must be introduced as a float value')
+            end
+        end
+
+        if any(strcmp(cond,'dt'))
+            idx = find(strcmp(cond,'dt'));
+            conditions.dt = cond{idx+1};
+            if ~isfloat(conditions.dt)
+                error('PIRT:parse_PIRT_HeatTransfer:The t resolution "dt" must be introduced as a float value')
+            end
+        end
+
         if any(strcmp(cond,'Tamb'))
             idx = find(strcmp(cond,'Tamb'));
             conditions.Tamb = cond{idx+1};

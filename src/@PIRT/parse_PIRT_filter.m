@@ -47,29 +47,33 @@ if ~or(ischar(filters),isstring(filters))
     mPOD_params = cell(n_filters,1);
     wiener3_params = cell(n_filters,1);
     gaussian_params = cell(n_filters,1);
+    cutoff_params = cell(n_filters,1);
     filter_type = zeros(n_filters,1);
 
     for i=1:n_filters
-        [pod,golay,mpod,wiener,gaussian,filter_type(i)] = select_filter(filters{i},params{i});
+        [pod,golay,mpod,wiener,gaussian,cutoff,filter_type(i)] = select_filter(filters{i},params{i});
         POD_params{i} = pod;
         sgolay32_params{i} = golay;
         mPOD_params{i} = mpod;
         wiener3_params{i} = wiener;
         gaussian_params{i} = gaussian;
+        cutoff_params{i} = cutoff;
     end
 
 else
-    [pod,golay,mpod,wiener,gaussian,filter_type] = select_filter(filters,params);
+    [pod,golay,mpod,wiener,gaussian,cutoff,filter_type] = select_filter(filters,params);
     POD_params = cell(1,1);
     sgolay32_params = cell(1,1);
     mPOD_params = cell(1,1);
     wiener3_params = cell(1,1);
     gaussian_params = cell(1,1);
+    cutoff_params = cell(1,1);
     POD_params{1} = pod;
     sgolay32_params{1} = golay;
     mPOD_params{1} = mpod;
     wiener3_params{1} = wiener;
     gaussian_params{1} = gaussian;
+    cutoff_params{1} = cutoff;
 end
 
 %% Saving the parser information
@@ -80,16 +84,19 @@ parameters.sgolay32_params = sgolay32_params;
 parameters.mPOD_params = mPOD_params;
 parameters.gaussian_params = gaussian_params;
 parameters.wiener3_params = wiener3_params;
+parameters.cutoff_params = cutoff_params;
 
 end
 
-function [POD_params,sgolay32_params,mPOD_params,wiener3_params,gaussian_params,filter_type] = select_filter(filter,params)
+function [POD_params,sgolay32_params,mPOD_params,wiener3_params,gaussian_params...
+    cutoff_params,filter_type] = select_filter(filter,params)
 
 POD_params = [];
 sgolay32_params = [];
 mPOD_params = [];
 wiener3_params = [];
 gaussian_params = [];
+cutoff_params = [];
 
 if strcmp(filter,'POD')
     if ~iscell(params)
@@ -121,6 +128,12 @@ elseif strcmp(filter,'gaussian')
     end
     gaussian_params = checksGaussian(params);
     filter_type = 5;
+elseif strcmp(filter,'cutoff')
+    if ~iscell(params)
+        error('PIRT:parse_PIRT_filter:If the Cutoff_Filter filter is selected, extra parameters are required')
+    end
+    cutoff_params = checksCutoff(params);
+    filter_type = 6;
 else
     error('PIRT:parse_PIRT_filter:A valid filter type must be selected')
 end
@@ -419,5 +432,68 @@ if any(strcmp(params,'FilterDomain'))
     end
 end
 
+end
+
+function cutoff_params = checksCutoff(params)
+
+cutoff_params.Spatial = {};
+cutoff_params.Temporal = {};
+
+if ~any(strcmp(params,'Spatial'))&&~any(strcmp(params,'Temporal'))
+    error('PIRT:parse_PIRT_filter: Spatial or Temporal fields must be introduced in the Cutoff filter')
+end
+
+if any(strcmp(params,'Spatial'))
+    idx = find(strcmp(params,'Spatial'));
+    spatial = params{idx+1};
+    names = fieldnames(spatial);
+    if any(strcmp(names,'fl'))
+        if any(strcmp(names,'fh'))
+            % Band-pass
+            cutoff_params.Spatial{1} = spatial.fl;
+            cutoff_params.Spatial{2} = spatial.fh;
+        else
+            % Low-pass
+            cutoff_params.Spatial{1} = spatial.fl;
+        end
+    else
+        if any(strcmp(names,'fh'))
+            % High-pass
+            cutoff_params.Spatial{1} = spatial.fh;
+            cutoff_params.Spatial{2} = 'high';
+        else
+            warning('PIRT:parse_PIRT_filter: A spatial cutoff frequency was not specified, the default kernel size will be utilized')
+        end
+    end
+end
+
+if any(strcmp(params,'Temporal'))
+    idx = find(strcmp(params,'Temporal'));
+    temporal = params{idx+1};
+    names = fieldnames(temporal);
+    if ~any(strcmp(names,'fs'))
+        error('PIRT:parse_PIRT_filter: The sampling frequency must be introduced for the temporal Cutoff filtering')
+    end
+    cutoff_params.Temporal{1} = temporal.fs;
+
+    if any(strcmp(names,'fl'))
+        if any(strcmp(names,'fh'))
+            % Band-pass
+            cutoff_params.Temporal{2} = temporal.fl;
+            cutoff_params.Temporal{3} = temporal.fh;
+        else
+            % Low-pass
+            cutoff_params.Temporal{2} = temporal.fl;
+        end
+    else
+        if any(strcmp(names,'fh'))
+            % High-pass
+            cutoff_params.Temporal{2} = spatial.fh;
+            cutoff_params.Temporal{3} = 'high';
+        else
+            error('PIRT:parse_PIRT_filter: A temporal cutoff frequency was not specified, either fl, fh or both must be introduced')
+        end
+    end
+end
 
 end
