@@ -1,7 +1,7 @@
 function Xf = Cutoff_Filter(X,varargin)
 % CUTOFF_FILTER Performs a filtering operation based on a 2D low-pass,
 % high-pass or a combination of both (band-pass) filters. The x direction
-% in the filters is the row direction and the y the y direction
+% in the filters is the row direction and the y the column direction
 %   Cutoff_Filter(X): performs a low-pass filter operation with cutoff
 %   frequencies equal to half of the allowed frequency range.
 %   Cutoff_Filter(X,fc): performs a low-pass filter operation with cutoff
@@ -96,15 +96,15 @@ Freq = fft2(X);
 % Center the frequency range
 Freq = fftshift(Freq);
 
-% figure()
-% subplot(1,2,1)
-% imagesc(H)
-% axis equal
-% subplot(1,2,2)
-% imagesc(mean(abs(Freq),3))
-% set(gca,'ColorScale','log')
-% colorbar
-% axis equal
+figure()
+subplot(1,2,1)
+imagesc(H)
+axis equal
+subplot(1,2,2)
+imagesc(mean(abs(Freq),3))
+set(gca,'ColorScale','log')
+colorbar
+axis equal
 
 % Apply the kernel
 K = Freq.*H;

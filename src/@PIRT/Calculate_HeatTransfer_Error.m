@@ -51,9 +51,16 @@ end
 s               = obj.HeatTransfer_params.HFS.s;
 rho             = obj.HeatTransfer_params.HFS.rho;
 cp              = obj.HeatTransfer_params.HFS.cp;
-kplate          = obj.HeatTransfer_params.HFS.k;
 Aboard          = obj.HeatTransfer_params.HFS.A;
 epsilonboard    = obj.HeatTransfer_params.HFS.epsilon;
+
+if (strcmp(obj.HeatTransfer_params.HFS.Type,'PCB'))
+    kplatex = obj.HeatTransfer_params.HFS.lambdax*s;
+    kplatey = obj.HeatTransfer_params.HFS.lambday*s;
+else
+    kplatex = obj.HeatTransfer_params.HFS.k;
+    kplatey = obj.HeatTransfer_params.HFS.k;
+end
 
 g               = obj.HeatTransfer_params.constants.g;
 sigma           = obj.HeatTransfer_params.constants.sigma;
@@ -61,22 +68,26 @@ sigma           = obj.HeatTransfer_params.constants.sigma;
 L_char          = obj.HeatTransfer_params.conditions.L_char;
 I               = obj.HeatTransfer_params.conditions.I;
 V               = obj.HeatTransfer_params.conditions.V;
-Tamb_cold       = obj.HeatTransfer_params.conditions.Tamb(1) + 273.15; % Convert to Kelvin
-Tamb_hot        = obj.HeatTransfer_params.conditions.Tamb(2) + 273.15;
+Tamb_cold       = obj.HeatTransfer_params.conditions.Tamb(1); 
+Tamb_hot        = obj.HeatTransfer_params.conditions.Tamb(2);
 
-errorTaw = obj.HeatTransfer_params.Error.errorT;
-errorTw = obj.HeatTransfer_params.Error.errorT;
-errorTamb = obj.HeatTransfer_params.Error.errorTamb;
-errorV = obj.HeatTransfer_params.Error.errorV;
-errorI = obj.HeatTransfer_params.Error.errorI;
+threshold = 100; % Rough estimation for minimum temperature in Celsius degrees:
+Thot      = checkCelsius(Thot,threshold);
+Tcold     = checkCelsius(Tcold,threshold);
+Tamb_hot  = checkCelsius(Tamb_hot,threshold);
+Tamb_cold = checkCelsius(Tamb_cold,threshold);
+
+errorT       = obj.HeatTransfer_params.Error.errorT;
+errorTamb    = obj.HeatTransfer_params.Error.errorTamb;
+errorV       = obj.HeatTransfer_params.Error.errorV;
+errorI       = obj.HeatTransfer_params.Error.errorI;
 errorEpsilon = obj.HeatTransfer_params.Error.errorEpsilon;
-errorrho = obj.HeatTransfer_params.Error.errorrho;
-errorcp = obj.HeatTransfer_params.Error.errorcp;
-errors = obj.HeatTransfer_params.Error.errors;
-errorAboard = obj.HeatTransfer_params.Error.errorAboard;
-errorkplate = obj.HeatTransfer_params.Error.errorkplate;
-errorLchar = obj.HeatTransfer_params.Error.errorLchar;
-errork = obj.HeatTransfer_params.Error.errork;
+errorrho     = obj.HeatTransfer_params.Error.errorrho;
+errorcp      = obj.HeatTransfer_params.Error.errorcp;
+errors       = obj.HeatTransfer_params.Error.errors;
+errorAboard  = obj.HeatTransfer_params.Error.errorAboard;
+errorkplate  = obj.HeatTransfer_params.Error.errorkplate;
+errorLchar   = obj.HeatTransfer_params.Error.errorLchar;
 
 if obj.HeatTransfer_params.compute_St
     err=fieldnames(obj.HeatTransfer_params.Error);
@@ -85,140 +96,160 @@ if obj.HeatTransfer_params.compute_St
             'value must be introduced to calculate the heat transfer ' ...
             'error estimation for St'])
     end
+    if ~any(strcmp(err,'errorrhoinf'))
+        error(['PIRT:parse_PIRT_HeatTransfer: The error in the rhoinf ' ...
+            'value must be introduced to calculate the heat transfer ' ...
+            'error estimation for St'])
+    end
     Uinf    = obj.HeatTransfer_params.conditions.Uinf;
     errorUinf = obj.HeatTransfer_params.Error.errorUinf;
+    rhoinf    = obj.HeatTransfer_params.conditions.rhoinf;
+    errorrhoinf = obj.HeatTransfer_params.Error.errorrhoinf;
 end
 
-
-Tcold_ref = mean(Tcold,3);
-Tfilm   = (Thot + Tcold_ref)/2;
-k = 1.5207E-11*Tfilm.^3-4.8574E-08*Tfilm.^2+1.0184E-04*Tfilm-3.9333E-04; % Air thermal conductivity as a function of T
-%% Calculating derivatives
-%Joule losses
-dNudQj    = L_char./(k.*(Thot-Tcold));
-dQjdV     = I/Aboard;
-dQjdI     = V/Aboard;
-dQjdAs     = -1*V*I/Aboard^2;
-%Radiation losses
-dNudQr    = -L_char./(k.*(Thot-Tcold));
-dQrdeps   = sigma.*(Thot.^4-Tamb_hot.^4);
-dQrdTw    = 4.*sigma.*epsilonboard.*Thot.^3;
-dQrdTamb  = -4.*sigma.*epsilonboard.*Tamb_hot.^3;
-
-%% Calculating errors
-
-errorQj   = ( (dQjdV.*errorV).^2 + (dQjdI.*errorI).^2 + (dQjdAs.*errorAboard).^2 ).^0.5;
-errorQr   = ( (dQrdeps.*errorEpsilon).^2 + (dQrdTw.*errorTw).^2 + (dQrdTamb.*errorTamb).^2 ).^0.5;
-
-if obj.HeatTransfer_params.time_der
-    fields = fieldnames(obj.result);
-    if any(strcmp(fields,'dTdt_hot'))
-        fields = fieldnames(obj.HeatTransfer_params.Error);
-        if any(strcmp(fields,'errordTdt'))
-            errordTdt = obj.HeatTransfer_params.Error.errordTdt;
-
-            dTdt = obj.result.dTdt_hot;
-
-            dNudQuns  = -L_char./(k.*(Thot-Tcold));
-            dQunsdcp  = rho.*s.*dTdt;
-            dQunsdrho = cp.*s.*dTdt;
-            dQunsds   = cp.*rho.*dTdt;
-            dQunsdTs  = cp.*rho.*s;
-
-            errorQuns = ( (dQunsdcp.*errorcp).^2 + (dQunsdrho.*errorrho).^2 + (dQunsds.*errors).^2 + (dQunsdTs.*errordTdt).^2 ).^0.5;
-        else
-            dNudQuns = 0;
-            errorQuns = 0;
-            warning(['PIRT:Calculate_HeatTransfer_Error: The error in the ' ...
-                'dTdt value must be introduced to calculate the heat ' ...
-                'transfer error estimation with the time derivative option'])
-
-        end
-    else
-        dNudQuns = 0;
-        errorQuns = 0;
-        warning(['PIRT:Calculate_HeatTransfer_Error: To add the unsteady ' ...
-            'terms to the heat transfer error calculation an sgolay32 ' ...
-            'filter has to be performed on the hot images'])
-    end
-else
-    errorQuns = 0;
+%% Compute heat transfer
+fields = fieldnames(obj.result);
+if ~any(strcmp(fields,'h'))
+    prev = obj.HeatTransfer_params.compute_h;
+    obj.HeatTransfer_params.compute_h = 1;
+    obj = obj.Calculate_HeatTransfer();
+    obj.HeatTransfer_params.compute_h = prev;
+    clear prev
+    warning(['PIRT:Calculate_HeatTransfer_Error: The h coefficient ' ...
+            'must be computed to compute the error by Moffat'])
 end
+%% Calculating Errors
+% Joule losses
+sigma_qj = sqrt((errorV.*I/Aboard).^2 + ...
+                (errorI.*V./Aboard).^2 + ...
+                (errorAboard.*V*I/(Aboard^2)).^2);
 
+% Radiation losses
+sigma_qr = sqrt((errorEpsilon.*sigma.*(Thot.^4-Tamb_hot.^4)).^2 + ...
+                (errorT.*4.*sigma.*epsilonboard.*Thot.^3).^2 + ...
+                (errorTamb.*4.*sigma.*epsilonboard.*Tamb_hot.^3).^2 );
+
+% Tangential losses
 if obj.HeatTransfer_params.spatial_der
     fields = fieldnames(obj.result);
     if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
-        fields = fieldnames(obj.HeatTransfer_params.Error);
-        if and(any(strcmp(fields,'errord2Tdx2')),any(strcmp(fields,'errord2Tdx2')))
-            errord2Tdx2 = obj.HeatTransfer_params.Error.errord2Tdx2;
-            errord2Tdy2 = obj.HeatTransfer_params.Error.errord2Tdy2;
-            d2Tdx2 = obj.result.d2Tdx2_hot;
-            d2Tdy2 = obj.result.d2Tdy2_hot;
+        fields = fieldnames(obj.HeatTransfer_params.conditions);
+        if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
+            fields = fieldnames(obj.HeatTransfer_params.Error);
+            if any(strcmp(fields,'errordx'))&&any(strcmp(fields,'errordy'))
 
-            dNudQk    = -L_char./(k.*(Thot-Tcold));
-            dQkdkcirc = s.*(d2Tdx2 + d2Tdy2);
-            dQkds     = kplate.*(d2Tdx2 + d2Tdy2);
-            dQdT2     = kplate.*s;
+                errordx     = obj.HeatTransfer_params.Error.errordx;
+                errordy     = obj.HeatTransfer_params.Error.errordy;
+                d2Tdx2      = obj.result.d2Tdx2_hot;
+                d2Tdy2      = obj.result.d2Tdy2_hot;
+                dx          = obj.HeatTransfer_params.conditions.dx;
+                dy          = obj.HeatTransfer_params.conditions.dy;
 
-            errorQk   = ( (dQkdkcirc.*errorkplate).^2 + (dQkds*errors).^2 + (dQdT2.*errord2Tdx2).^2 + (dQdT2.*errord2Tdy2).^2).^0.5;
+                sigma_d2Tdx2 = sqrt(6*errorT^2/(dx^4) + ...
+                    8*errordx^2*(d2Tdx2./dx).^2);
+                sigma_d2Tdy2 = sqrt(6*errorT^2/(dy^4) + ...
+                    8*errordy^2*(d2Tdy2./dy).^2);
+                sigma_qk = sqrt((errorkplate.*d2Tdx2).^2+...
+                    (errorkplate.*d2Tdy2).^2+ ...
+                    (sigma_d2Tdx2.*kplatex).^2+...
+                    (sigma_d2Tdy2.*kplatey).^2);
+                clear sigma_d2Tdy2 sigma_d2Tdx2
+
+            else
+                sigma_qk = 0;
+                warning(['PIRT:Calculate_HeatTransfer_Error: The error in the ' ...
+                    'd2Tdx2 and d2Tdy2 can only be computed if the derivatives'...
+                    ' were computed with the gradient, errordx and errordy must be '...
+                    'included in the conditions.'])
+            end
         else
-            dNudQk = 0;
-            errorQk = 0;
-            error(['PIRT:Calculate_HeatTransfer_Error: The error in the ' ...
-                'd2dTdx2 and d2Tdy2 values must be introduced to calculate ' ...
-                'the heat transfer error estimation with the spatial ' ...
-                'derivative option'])
+            sigma_qk = 0;
+            warning(['PIRT:Calculate_HeatTransfer_Error: The error in the ' ...
+                'd2Tdx2 and d2Tdy2 can only be computed if the derivatives'...
+                ' were computed with the gradient, dx and dy must be '...
+                'included in the conditions.'])
         end
+
     else
-        dNudQk = 0;
-        errorQk = 0;
-        warning(['PIRT:Calculate_HeatTransfer_Error: To add the spatial ' ...
-            'derivative terms to the heat transfer error calculation ' ...
-            'an sgolay32 filter has to be performed on the hot images'])
+        sigma_qk = 0;
+        warning(['PIRT:Calculate_HeatTransfer_Error: To add the spatial derivative ' ...
+            'terms to the heat transfer error calculation' ...
+            'the temporal derivative has to be computed previously'...
+            ' by the gradient method'])
     end
 else
-    dNudQk = 0;
-    errorQk = 0;
+    sigma_qk = 0;
 end
 
-%- Independent terms:
-fields = fieldnames(obj.result);
-if any(strcmp(fields,'Nu'))
-    Nu = obj.result.Nu;
-    h = Nu.*k./L_char;
-    dNudk     = -Nu./k;
-    dNudLchar = +Nu./L_char;
-    dNudTw    = -Nu./(Thot-Tcold);
-    dNudTaw   = +Nu./(Thot-Tcold);
+% Unsteady losses
+if obj.HeatTransfer_params.time_der
+    fields = fieldnames(obj.result);
+    if any(strcmp(fields,'dTdt_hot'))
+        fields = fieldnames(obj.HeatTransfer_params.conditions);
+        if strcmp(fields,'dt')
+            dTdt = obj.result.dTdt_hot;
+            dt   = obj.HeatTransfer_params.conditions.dt;
+
+            sigma_qt = sqrt((errorrho*cp*s*dTdt).^2 +...
+                            (errorcp*rho*s*dTdt).^2 +...
+                            (errors*rho*cp*dTdt).^2 +...
+                            (errorT/(sqrt(2)*dt)*rho*cp*s).^2 );
+
+        else
+            sigma_qt = 0;
+            warning(['PIRT:Calculate_HeatTransfer_Error: The error in the ' ...
+                'dTdt can only be computed if the derivatives'...
+                ' were computed with the gradient, dt must be '...
+                'included in the conditions.'])
+        end
+    else
+        sigma_qt = 0;
+        warning(['PIRT:Calculate_HeatTransfer_Error: To add the unsteady ' ...
+            'terms to the heat transfer error calculation' ...
+            'the temporal derivative has to be computed previously'...
+            ' by the gradient method or by applying the sgolay32 filter'])
+    end
 else
-    error('PIRT:Calculate_HeatTransfer_Error: The Nusselt number must be computed before trying to estimate the error')
+    sigma_qt = 0;
 end
 
+% Custom q error
+fields = fieldnames(obj.HeatTransfer_params.Error);
+if any(strcmp(fields,'sigma_qcustom'))
+    sigma_qcustom = obj.HeatTransfer_params.Error.sigma_qcustom;
+else
+    sigma_qcustom = 0;
+end
 
-errorh = ((dNudQj.*errorQj).^2 + (dNudQr.*errorQr).^2 + (dNudQk.*errorQk).^2 + (dNudQuns.*errorQuns).^2 +...
-    (dNudTw.*errorTw).^2 + (dNudTaw.*errorTaw).^2 ).^0.5;
-errorh_p = errorh./h.*100;
+%% Compute error
 
-errorNu   = errorh + (dNudk.*errork).^2 + (dNudLchar.*errorLchar).^2;
-errorNu_p = errorNu./Nu.*100;
+sigma_h = sqrt((sigma_qj.^2 + sigma_qr.^2 + sigma_qk.^2 + sigma_qt.^2 + ...
+              sigma_qcustom.^2)./(Thot - Tcold*Tamb_hot/Tamb_cold).^2  + ...
+              2*errorT^2*obj.result.h.^2);
 
 if obj.HeatTransfer_params.compute_h
-    obj.result.errorh      = errorh;
-    obj.result.errorh_p = errorh_p;
+    obj.result.errorh = sigma_h;
 end
 
 if obj.HeatTransfer_params.compute_Nu
-    obj.result.errorNu      = errorNu;
-    obj.result.errorNu_p = errorNu_p;
+    Tcold_ref = mean(Tcold,3);
+    Tfilm     = (Thot + Tcold_ref)/2;
+    k         = 1.5207E-11*Tfilm.^3-4.8574E-08*Tfilm.^2+1.0184E-04*Tfilm-3.9333E-04; % Air thermal conductivity as a function of T
+    
+    sigma_k = errorT.*(3*1.5207E-11.*Tfilm.^2 - 2*4.8574E-08.*Tfilm+1.0184E-04)./sqrt(2);
+    sigma_Nu = sqrt((sigma_h.*L_char./k).^2 +...
+                    (errorLchar.*h./k).^2 +...
+                    (sigma_k.*h.*L_char./(k.^2)).^2);
+    clear sigma_k
+    obj.result.errorNu = sigma_Nu;
 end
 
 if obj.HeatTransfer_params.compute_St
-    dStdrho = h./(cp*Uinf);
-    dStdcp= h./(rho*Uinf);
-    dStdUinf = h./(rho*cp);
-    obj.result.errorSt = errorh + (dStdrho*errorrho).^2 + (dStdcp*errorcp).^2 + (dStdUinf*errorUinf).^2;
-    St = h./(rho*cp*Uinf);
-    obj.result.errorSt_p = obj.result.errorSt./St.*100;
+    sigma_St = sqrt(sigma_h.^2 + ...
+                    errorrhoinf^2./rhoinf.^2+...
+                    errorcp.^2./cp.^2 + ...
+                    errorUinf.^2./Uinf.^2)/(rhoinf*cp*Uinf);
+    obj.result.errorSt = sigma_St;
 end
 
 end
@@ -249,9 +280,16 @@ Tcold = mean(Tcold,3);
 s               = obj.HeatTransfer_params.HFS.s;
 rho             = obj.HeatTransfer_params.HFS.rho;
 cp              = obj.HeatTransfer_params.HFS.cp;
-kplate          = obj.HeatTransfer_params.HFS.k;
 Aboard          = obj.HeatTransfer_params.HFS.A;
 epsilonboard    = obj.HeatTransfer_params.HFS.epsilon;
+
+if (strcmp(obj.HeatTransfer_params.HFS.Type,'PCB'))
+    kplatex = obj.HeatTransfer_params.HFS.lambdax*s;
+    kplatey = obj.HeatTransfer_params.HFS.lambday*s;
+else
+    kplatex = obj.HeatTransfer_params.HFS.k;
+    kplatey = obj.HeatTransfer_params.HFS.k;
+end
 
 g               = obj.HeatTransfer_params.constants.g;
 sigma           = obj.HeatTransfer_params.constants.sigma;
@@ -259,59 +297,74 @@ sigma           = obj.HeatTransfer_params.constants.sigma;
 L_char          = obj.HeatTransfer_params.conditions.L_char;
 I               = obj.HeatTransfer_params.conditions.I;
 V               = obj.HeatTransfer_params.conditions.V;
-Tamb_cold       = obj.HeatTransfer_params.conditions.Tamb(1) + 273.15; % Convert to Kelvin
-Tamb_hot        = obj.HeatTransfer_params.conditions.Tamb(2) + 273.15;
+Tamb_cold       = obj.HeatTransfer_params.conditions.Tamb(1); 
+Tamb_hot        = obj.HeatTransfer_params.conditions.Tamb(2);
 
-errorTaw = obj.HeatTransfer_params.Error.errorT;
-errorTw = obj.HeatTransfer_params.Error.errorT;
-errorTamb = obj.HeatTransfer_params.Error.errorTamb;
-errorV = obj.HeatTransfer_params.Error.errorV;
-errorI = obj.HeatTransfer_params.Error.errorI;
+threshold = 100; % Rough estimation for minimum temperature in Celsius degrees:
+Thot      = checkCelsius(Thot,threshold);
+Tcold     = checkCelsius(Tcold,threshold);
+Tamb_hot  = checkCelsius(Tamb_hot,threshold);
+Tamb_cold = checkCelsius(Tamb_cold,threshold);
+
+errorT       = obj.HeatTransfer_params.Error.errorT;
+errorTamb    = obj.HeatTransfer_params.Error.errorTamb;
+errorV       = obj.HeatTransfer_params.Error.errorV;
+errorI       = obj.HeatTransfer_params.Error.errorI;
 errorEpsilon = obj.HeatTransfer_params.Error.errorEpsilon;
-errorrho = obj.HeatTransfer_params.Error.errorrho;
-errorcp = obj.HeatTransfer_params.Error.errorcp;
-errors = obj.HeatTransfer_params.Error.errors;
-errorAboard = obj.HeatTransfer_params.Error.errorAboard;
-errorkplate = obj.HeatTransfer_params.Error.errorkplate;
-errorLchar = obj.HeatTransfer_params.Error.errorLchar;
-errork = obj.HeatTransfer_params.Error.errork;
+errorrho     = obj.HeatTransfer_params.Error.errorrho;
+errorcp      = obj.HeatTransfer_params.Error.errorcp;
+errors       = obj.HeatTransfer_params.Error.errors;
+errorAboard  = obj.HeatTransfer_params.Error.errorAboard;
+errorkplate  = obj.HeatTransfer_params.Error.errorkplate;
+errorLchar   = obj.HeatTransfer_params.Error.errorLchar;
+errork       = obj.HeatTransfer_params.Error.errork;
+
 if obj.HeatTransfer_params.compute_St
     err=fieldnames(obj.HeatTransfer_params.Error);
     if ~any(strcmp(err,'errorUinf'))
-        error('PIRT:parse_PIRT_HeatTransfer: The error in the Uinf value must be introduced to calculate the heat transfer error estimation for St')
+        error(['PIRT:parse_PIRT_HeatTransfer: The error in the Uinf ' ...
+            'value must be introduced to calculate the heat transfer ' ...
+            'error estimation for St'])
+    end
+    if ~any(strcmp(err,'errorrhoinf'))
+        error(['PIRT:parse_PIRT_HeatTransfer: The error in the rhoinf ' ...
+            'value must be introduced to calculate the heat transfer ' ...
+            'error estimation for St'])
     end
     Uinf    = obj.HeatTransfer_params.conditions.Uinf;
     errorUinf = obj.HeatTransfer_params.Error.errorUinf;
+    rhoinf    = obj.HeatTransfer_params.conditions.rhoinf;
+    errorrhoinf = obj.HeatTransfer_params.Error.errorrhoinf;
 end
 
-
-Tfilm   = (Thot + Tcold)/2;
-k = 1.5207E-11*Tfilm.^3-4.8574E-08*Tfilm.^2+1.0184E-04*Tfilm-3.9333E-04; % Air thermal conductivity as a function of T
+Tfilm = (Thot + Tcold)/2;
+k     = 1.5207E-11*Tfilm.^3-4.8574E-08*Tfilm.^2+1.0184E-04*Tfilm-3.9333E-04; % Air thermal conductivity as a function of T
 
 err=fieldnames(obj.HeatTransfer_params.Error);
 if ~any(strcmp(err,'samples'))
     warning('PIRT:parse_PIRT_HeatTransfer: Default number of samples taken as 1000. The number of samples was not introduced for the Montecarlo error estimation')
-    n=1000;
+    n = 1000;
 else
     n = obj.HeatTransfer_params.Error.samples;
 end
 
 for i=1:n
 
-    current.Thot = normrnd(Thot,Thot.*errorTw);
-    current.Tcold = normrnd(Tcold,Tcold.*errorTaw);
+    current.Thot      = normrnd(Thot,Thot.*errorT);
+    current.Tcold     = normrnd(Tcold,Tcold.*errorT);
     current.Tamb_cold = normrnd(Tamb_cold,Tamb_cold.*errorTamb);
-    current.Tamb_hot = normrnd(Tamb_hot,Tamb_hot.*errorTamb);
-    current.V = normrnd(V,V.*errorV);
-    current.I = normrnd(I,I.*errorI);
-    current.epsilon = normrnd(epsilonboard,epsilonboard.*errorEpsilon);
-    current.rho = normrnd(rho,rho.*errorrho);
-    current.cp = normrnd(cp,cp.*errorcp);
-    current.s = normrnd(s,s.*errors);
-    current.kplate = normrnd(kplate,kplate.*errorkplate);
-    current.Aboard = normrnd(Aboard,Aboard.*errorAboard);
-    current.L_char = normrnd(L_char,L_char.*errorLchar);
-    current.k = normrnd(k,k.*errork);
+    current.Tamb_hot  = normrnd(Tamb_hot,Tamb_hot.*errorTamb);
+    current.V         = normrnd(V,V.*errorV);
+    current.I         = normrnd(I,I.*errorI);
+    current.epsilon   = normrnd(epsilonboard,epsilonboard.*errorEpsilon);
+    current.rho       = normrnd(rho,rho.*errorrho);
+    current.cp        = normrnd(cp,cp.*errorcp);
+    current.s         = normrnd(s,s.*errors);
+    current.kplatex   = normrnd(kplatex,kplatex.*errorkplate);
+    current.kplatey   = normrnd(kplatey,kplatey.*errorkplate);
+    current.Aboard    = normrnd(Aboard,Aboard.*errorAboard);
+    current.L_char    = normrnd(L_char,L_char.*errorLchar);
+    current.k         = normrnd(k,k.*errork);
 
     ratio   = current.Tamb_hot/current.Tamb_cold;
 
@@ -328,8 +381,8 @@ for i=1:n
             fields = fieldnames(obj.result);
             if any(strcmp(fields,'dTdt_hot'))
                 errordTdt = obj.HeatTransfer_params.Error.errordTdt;
-                dTdt_hot = normrnd(mean(obj.result.dTdt_hot,3),mean(obj.result.dTdt_hot,3).*errordTdt);
-                unsteady = current.rho*current.s*current.cp*dTdt_hot; % [W/m^2]
+                dTdt_hot  = normrnd(mean(obj.result.dTdt_hot,3),mean(obj.result.dTdt_hot,3).*errordTdt);
+                unsteady  = current.rho*current.s*current.cp*dTdt_hot; % [W/m^2]
             else
                 unsteady = 0;
             end
@@ -349,9 +402,9 @@ for i=1:n
             if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
                 errord2Tdx2 = obj.HeatTransfer_params.Error.errord2Tdx2;
                 errord2Tdy2 = obj.HeatTransfer_params.Error.errord2Tdy2;
-                d2dTdx2 = normrnd(mean(obj.result.d2Tdx2_hot,3),mean(obj.result.d2Tdx2_hot,3).*errord2Tdx2);
-                d2dTdy2 = normrnd(mean(obj.result.d2Tdy2_hot,3),mean(obj.result.d2Tdy2_hot,3).*errord2Tdy2);
-                qk = current.kplate*current.s*(d2dTdx2+d2dTdy2); % [W/m^2]
+                d2dTdx2     = normrnd(mean(obj.result.d2Tdx2_hot,3),mean(obj.result.d2Tdx2_hot,3).*errord2Tdx2);
+                d2dTdy2     = normrnd(mean(obj.result.d2Tdy2_hot,3),mean(obj.result.d2Tdy2_hot,3).*errord2Tdy2);
+                qk          = current.kplatex.*d2dTdx2+current.kplatey.*d2dTdy2; % [W/m^2]
             else
                 qk = 0;
             end
@@ -368,23 +421,37 @@ for i=1:n
     end
     if obj.HeatTransfer_params.compute_St
         current.Uinf    = normrnd(Uinf,Uinf.*errorUinf);
+        current.rhoinf    = normrnd(rhoinf,rhoinf.*errorrhoinf);
         St(:,:,i) = h(:,:,i)./(current.rho*current.cp*current.Uinf);
     end
 end
 
 if obj.HeatTransfer_params.compute_h
-    obj.result.errorh      = mean(h,3);
-    obj.result.errorh_p = mean(h,3)./mean(obj.result.h,3).*100;
+    obj.result.errorh   = squeeze(mean(mean(h,1),2));
+    obj.result.errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(obj.result.h,'all'))./mean(obj.result.h,'all').*100;
+    fprintf('The mean value of h is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorh),nanstd(obj.result.errorh));
 end
 
 if obj.HeatTransfer_params.compute_Nu
-    obj.result.errorNu      = mean(Nu,3);
-    obj.result.errorNu_p = mean(Nu,3)./mean(obj.result.Nu,3).*100;
+    obj.result.errorNu   = squeeze(mean(mean(Nu,1),2));
+    obj.result.errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(obj.result.Nu,'all'))./mean(obj.result.Nu,'all').*100;
+    fprintf('The mean value of Nu is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorNu),nanstd(obj.result.errorNu));
 end
 
 if obj.HeatTransfer_params.compute_St
-    obj.result.errorSt      = mean(St,3);
-    obj.result.errorSt_p = mean(St,3)./mean(obj.result.St,3).*100;
+    obj.result.errorSt   = squeeze(mean(mean(St,1),2));
+    obj.result.errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(obj.result.St,'all'))./mean(obj.result.St,'all').*100;
+    fprintf('The mean value of St is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorSt),nanstd(obj.result.errorSt));
 end
 
+end
+
+% Aux functions:
+function T = checkCelsius(T,threshold)
+cel2kel = 273.15;
+Tm = mean(T,'all','omitnan');
+if Tm < threshold
+    T = T + cel2kel;
+    warning('PIRT:CalculateHeatTransfer: Temperature was converted to Kelvin. Check your inputs!')
+end
 end

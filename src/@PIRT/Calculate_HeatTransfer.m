@@ -243,7 +243,8 @@ end
 
 if obj.HeatTransfer_params.compute_St
     Uinf    = obj.HeatTransfer_params.conditions.Uinf;
-    obj.result.St      = h./(rho*cp*Uinf);
+    rhoinf    = obj.HeatTransfer_params.conditions.rhoinf;
+    obj.result.St      = h./(rhoinf*cp*Uinf);
 end
 end
 
@@ -349,6 +350,9 @@ end
 if params.compute_St
     if ~any(strcmp(condition_data,'Uinf'))
         error('PIRT:Calculate_HeatTransfer: Uinf must be introduced to compute the heat transfer if the St number is desired')
+    end
+    if ~any(strcmp(condition_data,'rhoinf'))
+        error('PIRT:Calculate_HeatTransfer: rhoinf must be introduced to compute the heat transfer if the St number is desired')
     end
 end
 

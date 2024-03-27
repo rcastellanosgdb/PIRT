@@ -10,10 +10,10 @@ function H = highpass_kernel(n,m,fn,fm)
 
 % Check that the frequencies introduced are valid
 if fn>floor(n/2)
-    error('lowpass_kernel: The frequency cutoff for the y range is not valid')
+    error('highpass_kernel: The frequency cutoff for the y range is not valid')
 end
 if fm>floor(m/2)
-    error('lowpass_kernel: The frequency cutoff for the x range is not valid')
+    error('highpass_kernel: The frequency cutoff for the x range is not valid')
 end
 
 % Create a meshgrid with the frequencies

@@ -214,6 +214,16 @@ if any(strcmp(varargin,'Conditions'))
             warning('PIRT:parse_PIRT_HeatTransfer:The Conditions free stream velocity must be intoduced to calculate the heat transfer if the St number is desired, it should be identified as "Uinf"')
         end
 
+        if any(strcmp(cond,'rhoinf'))
+            idx = find(strcmp(cond,'rhoinf'));
+            conditions.rhoinf = cond{idx+1};
+            if ~isfloat(conditions.rhoinf)
+                error('PIRT:parse_PIRT_HeatTransfer:The Conditions free stream density "rhoinf" must be introduced as a float value')
+            end
+        else
+            warning('PIRT:parse_PIRT_HeatTransfer:The Conditions free stream density must be intoduced to calculate the heat transfer if the St number is desired, it should be identified as "rhoinf"')
+        end
+
         if any(strcmp(cond,'dx'))
             idx = find(strcmp(cond,'dx'));
             conditions.dx = cond{idx+1};
@@ -396,6 +406,13 @@ if any(strcmp(varargin,'Error'))
             Error.errorUinf = err{idx+1};
             if ~isfloat(Error.errorUinf)
                 error('PIRT:parse_PIRT_HeatTransfer: The error in the Uinf must be introduced as a float value')
+            end
+        end
+        if any(strcmp(err,'errorrhoinf'))
+            idx = find(strcmp(err,'errorrhoinf'));
+            Error.errorrhoinf = err{idx+1};
+            if ~isfloat(Error.errorrhoinf)
+                error('PIRT:parse_PIRT_HeatTransfer: The error in the rhoinf must be introduced as a float value')
             end
         end
 

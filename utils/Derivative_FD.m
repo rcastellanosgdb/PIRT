@@ -35,7 +35,7 @@ if spatial == 1
     dTdy2(:,2:end-1,:) = (T(:,3:end,:)-2*T(:,2:end-1,:)+T(:,1:end-2,:))/dy^2;
     % Left margin with forward approximation
     dTdy2(:,1,:) = (2*T(:,1,:)-5*T(:,2,:)+4*T(:,3,:)-T(:,4,:))/dy^3;
-    % Right margin woth backward approximation
+    % Right margin with backward approximation
     dTdy2(:,end,:) = (2*T(:,end,:)-5*T(:,end-1,:)+4*T(:,end-2,:)-T(:,end-3,:))/dy^3;
 
     dTdx2 = zeros(size(T));
