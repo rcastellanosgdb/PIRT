@@ -189,12 +189,14 @@ if any(strcmp(varargin,'CalculateHeatTransfer'))
             errormethod = varargin{idx+1};
             switch errormethod
                 case {'Moffat','moffat'}
-                    obj.CalculateHeatTransferErrorMethod = 'Moffat';
+                    warning('PIRT: Moffat is not yet ready, Montecarlo will be used')
+                    % obj.CalculateHeatTransferErrorMethod = 'Moffat';
+                    obj.CalculateHeatTransferErrorMethod = 'Montecarlo';
                 case {'Montecarlo','Monte Carlo','montecarlo','monte carlo'}
                     obj.CalculateHeatTransferErrorMethod = 'Montecarlo';
                 otherwise
-                    obj.CalculateHeatTransferErrorMethod = 'Moffat';
-                    warning('PIRT:PIRT: Moffat method was selected to estimate the heat transfer error computation')
+                    obj.CalculateHeatTransferErrorMethod = 'Montecarlo';
+                    warning('PIRT:PIRT: Montecarlo method was selected to estimate the heat transfer error computation')
             end
         else
             obj.CalculateHeatTransferErrorMethod = 'direct';

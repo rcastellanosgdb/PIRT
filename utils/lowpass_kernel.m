@@ -9,12 +9,16 @@ function H = lowpass_kernel(n,m,fn,fm)
 %   Copyright 2023 Universidad Carlos III de Madrid
 
 % Check that the frequencies introduced are valid
-if fn>floor(n/2)
+if fn>1
     error('lowpass_kernel: The frequency cutoff for the x range is not valid')
 end
-if fm>floor(m/2)
+if fm>1
     error('lowpass_kernel: The frequency cutoff for the y range is not valid')
 end
+
+% Convert into actual sizes
+fn = floor(fn*m*0.5);
+fm = floor(fm*n*0.5);
 
 % Create a meshgrid with the frequencies
 [xx,yy] = meshgrid((1:m)-m/2,(1:n)-n/2);
