@@ -2,7 +2,7 @@ function Xf = Cutoff_Filter_3D(X,varargin)
 % CUTOFF_FILTER_3D performs a low/high/band-pass filtering operation in a
 % 3D matrix in both the spatial (first and second dimension) and temporal
 % dimension (third dim). It uses Cutoff_Filter as an auxiliary function to
-% perform the spatial filtering and Temporal_Pass_Filter to perform the
+% perform the spatial filtering and Temporal_Cutoff_Filter to perform the
 % temporal filtering operation. The frequencies introduced must be in
 % Hertz.
 %   Cutoff_Filter_3D(X,'Spatial',fc): performs a low-pass spatial filter
@@ -50,26 +50,26 @@ if idx_spat>-1&&idx_temp>-1
     end
     % Spatial filter
     if length(spatial_idx)==1 % Low-pass
-        Xf = Cutoff_Filter(X,varargin{spatial_idx(1)});
+        Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)});
     elseif length(spatial_idx)==2
         if strcmp(varargin{spatial_idx(2)},'high') % high-pass
-            Xf = Cutoff_Filter(X,varargin{spatial_idx(1)},'high');
+            Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)},'high');
         else
             % Band-pass
-            Xf = Cutoff_Filter(X,varargin{spatial_idx(1)},varargin{spatial_idx(2)});
+            Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)},varargin{spatial_idx(2)});
         end
     else
         error('Cutoff_Filter_3D: Information for the spatial filter not correctly introduced')
     end
     % Temporal filter
     if length(temporal_idx)==2 % Low-pass
-        Xf  = Temporal_Pass_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)});
+        Xf  = Temporal_Cutoff_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)});
     elseif length(temporal_idx)==3
         if strcmp(varargin{temporal_idx(3)},'high') % high-pass
-            Xf  = Temporal_Pass_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)},'high');
+            Xf  = Temporal_Cutoff_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)},'high');
         else
         % Band-pass
-            Xf  = Temporal_Pass_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)},varargin{temporal_idx(3)});
+            Xf  = Temporal_Cutoff_Filter(Xf,varargin{temporal_idx(1)},varargin{temporal_idx(2)},varargin{temporal_idx(3)});
         end
     else
         error('Cutoff_Filter_3D: Information for the temporal filter not correctly introduced')
@@ -80,13 +80,13 @@ else
         spatial_idx = idx_spat+1:length(varargin);
         
         if length(spatial_idx)==1 % Low-pass
-            Xf = Cutoff_Filter(X,varargin{spatial_idx(1)});
+            Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)});
         elseif length(spatial_idx)==2
             if strcmp(varargin{spatial_idx(2)},'high') % high-pass
-                Xf = Cutoff_Filter(X,varargin{spatial_idx(1)},'high');
+                Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)},'high');
             else
                 % Band-pass
-                Xf = Cutoff_Filter(X,varargin{spatial_idx(1)},varargin{spatial_idx(2)});
+                Xf = Spatial_Cutoff_Filter(X,varargin{spatial_idx(1)},varargin{spatial_idx(2)});
             end
         else
             error('Cutoff_Filter_3D: Information for the spatial filter not correctly introduced')
@@ -96,13 +96,13 @@ else
         temporal_idx = idx_temp+1:length(varargin);
 
         if length(temporal_idx)==2 % Low-pass
-            Xf  = Temporal_Pass_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)});
+            Xf  = Temporal_Cutoff_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)});
         elseif length(temporal_idx)==3
             if strcmp(varargin{temporal_idx(3)},'high') % high-pass
-                Xf  = Temporal_Pass_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)},'high');
+                Xf  = Temporal_Cutoff_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)},'high');
             else
                 % Band-pass
-                Xf  = Temporal_Pass_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)},varargin{temporal_idx(3)});
+                Xf  = Temporal_Cutoff_Filter(X,varargin{temporal_idx(1)},varargin{temporal_idx(2)},varargin{temporal_idx(3)});
             end
         else
             error('Cutoff_Filter_3D: Information for the temporal filter not correctly introduced')
