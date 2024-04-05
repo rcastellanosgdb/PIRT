@@ -51,15 +51,36 @@ switch obj.filter_params.filter(idx)
         disp('-- sgolay32 filter Hot images');
         if ismember('w',fields)
             if ismember('h',fields)
-                [obj.result.Thot_new,obj.result.dTdt_hot,obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot] = ...
+                [obj.result.Thot_new,dTdt_hot,d2Tdx2_hot,d2Tdy2_hot] = ...
                     sgolay32_filter(Thot,obj.filter_params.sgolay32_params{idx}.w,obj.filter_params.sgolay32_params{idx}.h);
             else
-                [obj.result.Thot_new,obj.result.dTdt_hot,obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot] = ...
+                [obj.result.Thot_new,dTdt_hot,d2Tdx2_hot,d2Tdy2_hot] = ...
                     sgolay32_filter(Thot,obj.filter_params.sgolay32_params{idx}.w);
             end
         else
-            [obj.result.Thot_new,obj.result.dTdt_hot,obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot] = ...
+            [obj.result.Thot_new,dTdt_hot,d2Tdx2_hot,d2Tdy2_hot] = ...
                 sgolay32_filter(Thot);
+        end
+
+
+
+        if strcmp(obj.output.type,'file')
+            disp('--> Saving information into file')
+            if endsWith(obj.output.path,'\')
+                save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+            else
+                save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+            end
+            clear dTdt_hot d2Tdy2_hot d2Tdx2_hot
+        else
+            obj.result.dTdt_hot = dTdt_hot;
+            obj.result.d2Tdx2_hot = d2Tdx2_hot;
+            obj.result.d2Tdy2_hot = d2Tdy2_hot;
+            clear dTdt_hot d2Tdy2_hot d2Tdx2_hot
         end
         disp('--> Thot DONE')
 

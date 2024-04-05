@@ -10,11 +10,12 @@ classdef PIRT
         Thot (:,:,:) {mustBeNumeric} = [] % Snapshot matrix with wall temperature
         Tcold (:,:,:) {mustBeNumeric} = [] % Snapshot matrix with adiabatic wall temperature
         Calculate_filter {mustBeNumericOrLogical} = false % Flag to filter the temperature maps.
-        filter_params     % Parameters for temperature filtering
+        filter_params % Parameters for temperature filtering
         CalculateHeatTransfer {mustBeNumericOrLogical}  = false % Flag to calculate heat transfer.
         CalculateHeatTransferError {mustBeNumericOrLogical}  = false % Flag to calculate heat transfer error.
         CalculateHeatTransferErrorMethod %Method for error estimation
-        HeatTransfer_params         % Parameters for Nusselt number calculation
+        HeatTransfer_params % Parameters for Nusselt number calculation
+        output % Utilized for controlling how data saving is handled
         result = [] % Struct with output values
         cropping_points = [] % 2D matrix with the cropping points
     end

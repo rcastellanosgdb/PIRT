@@ -106,6 +106,24 @@ if any(strcmp(varargin,'Crop'))
     end
 end
 
+if any(strcmp(varargin,'Output'))
+    idx = find(strcmp(varargin,'Output'));
+    selection = varargin{idx+1};
+    if strcmp(selection,'file')
+        idx = find(strcmp(varargin,'file'));
+        path = varargin{idx+1};
+        if ~exist(path,'dir')==7
+            error('PIRT:PIRT: If the information is to be saved in files the path where the results will be saved must be introduced after "file"')
+        end
+        output.type = 'file';
+        output.path = path;
+    else
+        output.type = 'internal';
+    end
+else
+    output.type = 'internal';
+end
+
 obj.cropping_points = cropping_points;
 
 if any(strcmp(varargin,'CalculateHeatTransfer'))

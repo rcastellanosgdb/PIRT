@@ -82,31 +82,126 @@ if obj.HeatTransfer_params.time_der
         if any(strcmp(fields,'dt'))
             % Obtain the derivative
             disp('----Computing unsteady terms')
-            [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+            [~,~,dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
             disp('----Adding unsteady terms')
-            unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
+            unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+
+            if strcmp(obj.output.type,'file')
+                disp('--> Saving dTdt information into file')
+                if endsWith(obj.output.path,'\')
+                    save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                else
+                    save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                end
+                clear dTdt_hot
+            else
+                obj.result.dTdt_hot = dTdt_hot;
+                clear dTdt_hot
+            end
         else
             warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
             unsteady = 0;
         end
     elseif ~isempty(find(obj.filter_params.filter==3))
-        fields = fieldnames(obj.result);
-        if any(strcmp(fields,'dTdt_hot'))
-            disp('----Adding unsteady terms')
-            unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
+        if strcmp(obj.output.type,'file')
+            if endsWith(obj.output.path,'\')
+                if isfile(strcat([obj.output.path,'dTdt.mat']))
+                    load(strcat([obj.output.path,'dTdt.mat']))
+                    unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+                else
+                    % Compute derivatives with gradient
+                    fields = fieldnames(obj.HeatTransfer_params.conditions);
+                    if any(strcmp(fields,'dt'))
+                        warning('Unsteady term computed with gradient. sgolay32 filter data file was not found')
+                        % Obtain the derivative
+                        disp('----Computing unsteady terms')
+                        [~,~,dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+                        disp('----Adding unsteady terms')
+                        unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+
+                        if strcmp(obj.output.type,'file')
+                            disp('--> Saving dTdt information into file')
+                            if endsWith(obj.output.path,'\')
+                                save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                            else
+                                save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                            end
+                            clear dTdt_hot
+                        else
+                            obj.result.dTdt_hot = dTdt_hot;
+                            clear dTdt_hot
+                        end
+                    else
+                        warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
+                        unsteady = 0;
+                    end
+                end
+            else
+                if isfile(strcat([obj.output.path,'\dTdt.mat']))
+                    load(strcat([obj.output.path,'\dTdt.mat']))
+                    unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+                else
+                    % Compute derivatives with gradient
+                    fields = fieldnames(obj.HeatTransfer_params.conditions);
+                    if any(strcmp(fields,'dt'))
+                        warning('Unsteady term computed with gradient. sgolay32 filter data file was not found')
+                        % Obtain the derivative
+                        disp('----Computing unsteady terms')
+                        [~,~,dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+                        disp('----Adding unsteady terms')
+                        unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+
+                        if strcmp(obj.output.type,'file')
+                            disp('--> Saving dTdt information into file')
+                            if endsWith(obj.output.path,'\')
+                                save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                            else
+                                save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                            end
+                            clear dTdt_hot
+                        else
+                            obj.result.dTdt_hot = dTdt_hot;
+                            clear dTdt_hot
+                        end
+                    else
+                        warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
+                        unsteady = 0;
+                    end
+                end
+            end
+            
         else
-            % Compute derivatives with gradient
-            fields = fieldnames(obj.HeatTransfer_params.conditions);
-            if any(strcmp(fields,'dt'))
-                warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
-                % Obtain the derivative
-                disp('----Computing unsteady terms')
-                [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+            fields = fieldnames(obj.result);
+            if any(strcmp(fields,'dTdt_hot'))
                 disp('----Adding unsteady terms')
                 unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
             else
-                warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
-                unsteady = 0;
+                % Compute derivatives with gradient
+                fields = fieldnames(obj.HeatTransfer_params.conditions);
+                if any(strcmp(fields,'dt'))
+                    warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
+                    % Obtain the derivative
+                    disp('----Computing unsteady terms')
+                    [~,~,dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+                    disp('----Adding unsteady terms')
+                    unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+
+                    if strcmp(obj.output.type,'file')
+                        disp('--> Saving dTdt information into file')
+                        if endsWith(obj.output.path,'\')
+                            save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                        else
+                            save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                        end
+                        clear dTdt_hot
+                    else
+                        obj.result.dTdt_hot = dTdt_hot;
+                        clear dTdt_hot
+                    end
+                else
+                    warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
+                    unsteady = 0;
+                end
             end
         end
     else
@@ -116,9 +211,22 @@ if obj.HeatTransfer_params.time_der
             warning('Unsteady term computed with gradient. sgolay32 filter was not performed')
             % Obtain the derivative
             disp('----Computing unsteady terms')
-            [~,~,obj.result.dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
+            [~,~,dTdt_hot] = Derivative_FD(Thot,0,1,0,0,obj.HeatTransfer_params.conditions.dt);
             disp('----Adding unsteady terms')
-            unsteady = rho*s*cp*obj.result.dTdt_hot; % [W/m^2]
+            unsteady = rho*s*cp*dTdt_hot; % [W/m^2]
+
+            if strcmp(obj.output.type,'file')
+                disp('--> Saving dTdt information into file')
+                if endsWith(obj.output.path,'\')
+                    save(strcat([obj.output.path,'dTdt.mat']),"dTdt_hot",'-v7.3')
+                else
+                    save(strcat([obj.output.path,'\dTdt.mat']),"dTdt_hot",'-v7.3')
+                end
+                clear dTdt_hot
+            else
+                obj.result.dTdt_hot = dTdt_hot;
+                clear dTdt_hot
+            end
         else
             warning('Unsteady term could not be computed with gradient, the temporal resolution dt is missing.')
             unsteady = 0;
@@ -137,33 +245,122 @@ if obj.HeatTransfer_params.spatial_der
         if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
             % Obtain the derivative
             disp('----Computing spatial terms')
-            [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+            [d2Tdx2_hot,d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
             disp('----Adding spatial terms')
             if isempty(PCB)
-                qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
+                qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
             else
-                qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
+                qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+            end
+            
+            if strcmp(obj.output.type,'file')
+                disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
+                if endsWith(obj.output.path,'\')
+                    save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                else
+                    save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+                end
+                clear d2Tdx2_hot d2Tdy2_hot
+            else
+                obj.result.d2Tdx2_hot = d2Tdx2_hot;
+                obj.result.d2Tdy2_hot = d2Tdy2_hot;
+                clear d2Tdx2_hot d2Tdy2_hot
             end
         else
             warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
             qk = 0;
         end
     elseif ~isempty(find(obj.filter_params.filter==3))
-        fields = fieldnames(obj.result);
-        if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
-            disp('----Adding spatial terms')
-            if isempty(PCB)
-                qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
+        if strcmp(obj.output.type,'file')
+            if endsWith(obj.output.path,'\')
+                if isfile(strcat([obj.output.path,'d2Tdx2.mat']))&&isfile(strcat([obj.output.path,'d2Tdy2.mat']))
+                    load(strcat([obj.output.path,'d2Tdx2.mat']))
+                    load(strcat([obj.output.path,'d2Tdy2.mat']))
+                    if isempty(PCB)
+                        qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
+                    else
+                        qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+                    end
+                else
+                    % Compute derivatives with gradient
+                    fields = fieldnames(obj.HeatTransfer_params.conditions);
+                    if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
+                        warning('Tangencial-conduction term computed with gradient. sgolay32 filter data file was not found')
+                        % Obtain the derivative
+                        disp('----Computing spatial terms')
+                        [d2Tdx2_hot,d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+                        disp('----Adding spatial terms')
+                        if isempty(PCB)
+                            qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
+                        else
+                            qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+                        end
+
+                        if strcmp(obj.output.type,'file')
+                            disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
+                            if endsWith(obj.output.path,'\')
+                                save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                            else
+                                save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+                            end
+                            clear d2Tdx2_hot d2Tdy2_hot
+                        else
+                            obj.result.d2Tdx2_hot = d2Tdx2_hot;
+                            obj.result.d2Tdy2_hot = d2Tdy2_hot;
+                            clear d2Tdx2_hot d2Tdy2_hot
+                        end
+                    else
+                        warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
+                        qk = 0;
+                    end
+                end
             else
-                qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
+                if isfile(strcat([obj.output.path,'\d2Tdx2.mat']))&&isfile(strcat([obj.output.path,'\d2Tdy2.mat']))
+                    load(strcat([obj.output.path,'\d2Tdx2.mat']))
+                    load(strcat([obj.output.path,'\d2Tdy2.mat']))
+                    if isempty(PCB)
+                        qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
+                    else
+                        qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+                    end
+                else
+                    % Compute derivatives with gradient
+                    fields = fieldnames(obj.HeatTransfer_params.conditions);
+                    if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
+                        warning('Tangencial-conduction term computed with gradient. sgolay32 filter data file was not found')
+                        % Obtain the derivative
+                        disp('----Computing spatial terms')
+                        [d2Tdx2_hot,d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+                        disp('----Adding spatial terms')
+                        if isempty(PCB)
+                            qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
+                        else
+                            qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+                        end
+
+                        if strcmp(obj.output.type,'file')
+                            disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
+                            if endsWith(obj.output.path,'\')
+                                save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                            else
+                                save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+                            end
+                            clear d2Tdx2_hot d2Tdy2_hot
+                        else
+                            obj.result.d2Tdx2_hot = d2Tdx2_hot;
+                            obj.result.d2Tdy2_hot = d2Tdy2_hot;
+                            clear d2Tdx2_hot d2Tdy2_hot
+                        end
+                    else
+                        warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
+                        qk = 0;
+                    end
+                end
             end
+
         else
-            % Compute derivatives with gradient
-            fields = fieldnames(obj.HeatTransfer_params.conditions);
-            if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
-                % Obtain the derivative
-                disp('----Computing spatial terms')
-                [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+            fields = fieldnames(obj.result);
+            if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
                 disp('----Adding spatial terms')
                 if isempty(PCB)
                     qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
@@ -171,8 +368,36 @@ if obj.HeatTransfer_params.spatial_der
                     qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
                 end
             else
-                warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
-                qk = 0;
+                % Compute derivatives with gradient
+                fields = fieldnames(obj.HeatTransfer_params.conditions);
+                if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
+                    % Obtain the derivative
+                    disp('----Computing spatial terms')
+                    [d2Tdx2_hot,d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+                    disp('----Adding spatial terms')
+                    if isempty(PCB)
+                        qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
+                    else
+                        qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+                    end
+
+                    if strcmp(obj.output.type,'file')
+                        disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
+                        if endsWith(obj.output.path,'\')
+                            save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                        else
+                            save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+                        end
+                        clear d2Tdx2_hot d2Tdy2_hot
+                    else
+                        obj.result.d2Tdx2_hot = d2Tdx2_hot;
+                        obj.result.d2Tdy2_hot = d2Tdy2_hot;
+                        clear d2Tdx2_hot d2Tdy2_hot
+                    end
+                else
+                    warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
+                    qk = 0;
+                end
             end
         end
     else
@@ -181,12 +406,26 @@ if obj.HeatTransfer_params.spatial_der
         if any(strcmp(fields,'dx'))&&any(strcmp(fields,'dy'))
             % Obtain the derivative
             disp('----Computing spatial terms')
-            [obj.result.d2Tdx2_hot,obj.result.d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
+            [d2Tdx2_hot,d2Tdy2_hot,~] = Derivative_FD(Thot,1,0,obj.HeatTransfer_params.conditions.dx,obj.HeatTransfer_params.conditions.dy,0);
             disp('----Adding spatial terms')
             if isempty(PCB)
-                qk = k*(obj.result.d2Tdx2_hot + obj.result.d2Tdy2_hot); % [W/m^2]
+                qk = k*(d2Tdx2_hot + d2Tdy2_hot); % [W/m^2]
             else
-                qk = s*(PCB.lambdax*obj.result.d2Tdx2_hot + PCB.lambday*obj.result.d2Tdy2_hot);
+                qk = s*(PCB.lambdax*d2Tdx2_hot + PCB.lambday*d2Tdy2_hot);
+            end
+
+            if strcmp(obj.output.type,'file')
+                disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
+                if endsWith(obj.output.path,'\')
+                    save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                else
+                    save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
+                end
+                clear d2Tdx2_hot d2Tdy2_hot
+            else
+                obj.result.d2Tdx2_hot = d2Tdx2_hot;
+                obj.result.d2Tdy2_hot = d2Tdy2_hot;
+                clear d2Tdx2_hot d2Tdy2_hot
             end
         else
             warning('Tangencial-conduction could not be computed with gradient, the x and y resolution dx, dy are missing.')
@@ -211,7 +450,16 @@ end
 h      = q./ ( Thot - (Tcold*ratio) ); %[W/K m^2]
 
 if obj.HeatTransfer_params.compute_h
-    obj.result.h      = h;
+    if strcmp(obj.output.type,'file')
+        disp('--> Saving h information into file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'h.mat']),"h",'-v7.3')
+        else
+            save(strcat([obj.output.path,'\h.mat']),"h",'-v7.3')
+        end
+    else
+        obj.result.h = h;
+    end
 end
 
 if obj.HeatTransfer_params.compute_Nu
@@ -238,13 +486,36 @@ if obj.HeatTransfer_params.compute_Nu
     end
     % Air thermal conductivity as a function of T
     kair   = 1.5207E-11*Tfilm.^3-4.8574E-08*Tfilm.^2+1.0184E-04*Tfilm-3.9333E-04; clear Tfilm
-    obj.result.Nu      = h.*L_char./kair;
+    Nu = h.*L_char./kair;
+    if strcmp(obj.output.type,'file')
+        disp('--> Saving Nu information into file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'Nu.mat']),"Nu",'-v7.3')
+        else
+            save(strcat([obj.output.path,'\Nu.mat']),"Nu",'-v7.3')
+        end
+    else
+        obj.result.Nu = Nu;
+    end
+    clear Nu
 end
 
 if obj.HeatTransfer_params.compute_St
     Uinf    = obj.HeatTransfer_params.conditions.Uinf;
-    rhoinf    = obj.HeatTransfer_params.conditions.rhoinf;
-    obj.result.St      = h./(rhoinf*cp*Uinf);
+    rhoinf  = obj.HeatTransfer_params.conditions.rhoinf;
+    St      = h./(rhoinf*cp*Uinf);
+
+    if strcmp(obj.output.type,'file')
+        disp('--> Saving St information into file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'St.mat']),"St",'-v7.3')
+        else
+            save(strcat([obj.output.path,'\St.mat']),"St",'-v7.3')
+        end
+    else
+        obj.result.St = St;
+    end
+    clear St
 end
 end
 
@@ -266,15 +537,32 @@ Conditions  = obj.HeatTransfer_params.conditions;
 params      = obj.HeatTransfer_params;
 
 if ~isempty(obj.result)
-    if isfield(obj.result,'Thot_new')
-        Thot = obj.result.Thot_new;
-    else
-        Thot = obj.Thot;
-    end
-    if isfield(obj.result,'Tcold_new')
-        Tcold = obj.result.Tcold_new;
-    else
+    if strcmp(obj.output.type,'file')
+        if endsWith(obj.output.path,'\')
+            if isfile(strcat([obj.output.path,'Thot_filtered.mat']))
+                load(strcat([obj.output.path,'Thot_filtered.mat']))
+            else
+                error('PIRT:Calculate_HeatTransfer: The Thot matrix could not be found')
+            end
+        else
+            if isfile(strcat([obj.output.path,'\Thot_filtered.mat']))
+                load(strcat([obj.output.path,'\Thot_filtered.mat']))
+            else
+                error('PIRT:Calculate_HeatTransfer: The Thot matrix could not be found')
+            end
+        end
         Tcold = obj.Tcold;
+    else
+        if isfield(obj.result,'Thot_new')
+            Thot = obj.result.Thot_new;
+        else
+            Thot = obj.Thot;
+        end
+        if isfield(obj.result,'Tcold_new')
+            Tcold = obj.result.Tcold_new;
+        else
+            Tcold = obj.Tcold;
+        end
     end
 else
     Thot = obj.Thot;

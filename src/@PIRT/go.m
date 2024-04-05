@@ -28,6 +28,17 @@ if obj.Calculate_filter %Execute the filtering operation
     for i=1:length(obj.filter_params.filter)
         obj = obj.FilterTemperature(i);
     end
+    if strcmp(obj.output.type,'file')
+        disp('--> Saving information into file')
+        Thot = obj.result.Thot_new;
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'Thot_filtered.mat']),"Thot",'-v7.3')
+        else
+            save(strcat([obj.output.path,'\Thot_filtered.mat']),"Thot",'-v7.3')
+        end
+        clear Thot
+        obj.result.Thot_new = [];
+    end
 else
     disp('******************** No Filter Applied *********************')
 end

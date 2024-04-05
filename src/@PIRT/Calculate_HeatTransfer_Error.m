@@ -259,15 +259,32 @@ function obj = montecarlo_method(obj)
 %% Obtain data
 
 if ~isempty(obj.result)
-    if isfield(obj.result,'Thot_new')
-        Thot = obj.result.Thot_new;
-    else
-        Thot = obj.Thot;
-    end
-    if isfield(obj.result,'Tcold_new')
-        Tcold = obj.result.Tcold_new;
-    else
+    if strcmp(obj.output.type,'file')
+        if endsWith(obj.output.path,'\')
+            if isfile(strcat([obj.output.path,'Thot_filtered.mat']))
+                load(strcat([obj.output.path,'Thot_filtered.mat']))
+            else
+                error('PIRT:Calculate_HeatTransfer: The Thot matrix could not be found')
+            end
+        else
+            if isfile(strcat([obj.output.path,'Thot_filtered.mat']))
+                load(strcat([obj.output.path,'\Thot_filtered.mat']))
+            else
+                error('PIRT:Calculate_HeatTransfer: The Thot matrix could not be found')
+            end
+        end
         Tcold = obj.Tcold;
+    else
+        if isfield(obj.result,'Thot_new')
+            Thot = obj.result.Thot_new;
+        else
+            Thot = obj.Thot;
+        end
+        if isfield(obj.result,'Tcold_new')
+            Tcold = obj.result.Tcold_new;
+        else
+            Tcold = obj.Tcold;
+        end
     end
 else
     Thot = obj.Thot;
@@ -348,6 +365,69 @@ else
     n = obj.HeatTransfer_params.Error.samples;
 end
 
+tder = 1;
+if strcmp(obj.output.type,'file')
+    if endsWith(obj.output.path,'\')
+        if isfile(strcat([obj.output.path,'dTdt.mat']))
+            load(strcat([obj.output.path,'dTdt.mat']))
+            tder = 1;
+        else
+            tder = 0;
+        end
+    else
+        if isfile(strcat([obj.output.path,'\dTdt.mat']))
+            load(strcat([obj.output.path,'\dTdt.mat']))
+            tder = 1;
+        else
+            tder = 0;
+        end
+    end
+    dTdt_m = mean(dTdt_hot,3);
+    clear dTdt_hot
+else
+    fields = fieldnames(obj.result);
+    if any(strcmp(fields,'dTdt_hot'))
+        dTdt_m = mean(obj.result.dTdt_hot,3);
+        tder = 1;
+    else
+        tder = 0;
+    end
+end
+
+sder = 1;
+if strcmp(obj.output.type,'file')
+    if endsWith(obj.output.path,'\')
+        if isfile(strcat([obj.output.path,'d2Tdx2.mat']))&&isfile(strcat([obj.output.path,'d2Tdy2.mat']))
+            load(strcat([obj.output.path,'d2Tdx2.mat']))
+            load(strcat([obj.output.path,'d2Tdy2.mat']))
+            sder = 1;
+        else
+            sder = 0;
+        end
+    else
+        if isfile(strcat([obj.output.path,'\d2Tdx2.mat']))&&isfile(strcat([obj.output.path,'\d2Tdy2.mat']))
+            load(strcat([obj.output.path,'\d2Tdx2.mat']))
+            load(strcat([obj.output.path,'\d2Tdy2.mat']))
+            sder = 1;
+        else
+            sder = 0;
+        end
+    end
+    d2Tdx2_m = mean(d2Tdx2_hot,3);
+    d2Tdy2_m = mean(d2Tdy2_hot,3);
+    clear d2Tdx2_hot d2Tdy2_hot
+else
+    fields = fieldnames(obj.result);
+    if any(strcmp(fields,'d2Tdx2_hot'))&&any(strcmp(fields,'d2Tdy2_hot'))
+        d2Tdx2_m = mean(obj.result.d2Tdx2_hot,3);
+        d2Tdy2_m = mean(obj.result.d2Tdy2_hot,3);
+        tder = 1;
+    else
+        tder = 0;
+    end
+end
+
+
 for i=1:n
 
     current.Thot      = normrnd(Thot,Thot.*errorT);
@@ -374,43 +454,23 @@ for i=1:n
     qrad    = sigma.*current.epsilon.*(current.Thot.^4-current.Tamb_hot.^4); % [W/m^2]
 
     %-- Internal energy
-    if obj.HeatTransfer_params.time_der
-        if isempty(obj.filter_params)
-            unsteady = 0;
-        elseif any(cellfun(@isempty,obj.filter_params.sgolay32_params))
-            fields = fieldnames(obj.result);
-            if any(strcmp(fields,'dTdt_hot'))
-                errordTdt = obj.HeatTransfer_params.Error.errordTdt;
-                dTdt_hot  = normrnd(mean(obj.result.dTdt_hot,3),mean(obj.result.dTdt_hot,3).*errordTdt);
-                unsteady  = current.rho*current.s*current.cp*dTdt_hot; % [W/m^2]
-            else
-                unsteady = 0;
-            end
-        else
-            unsteady = 0;
-        end
+    if obj.HeatTransfer_params.time_der&&tder==1
+        errordTdt = obj.HeatTransfer_params.Error.errordTdt;
+        dTdt_hot  = normrnd(dTdt_m,dTdt_m.*errordTdt);
+        unsteady  = current.rho*current.s*current.cp*dTdt_hot; % [W/m^2]
     else
         unsteady=0;
     end
 
     %-- Tangencial conduction heat flux
-    if obj.HeatTransfer_params.spatial_der
-        if isempty(obj.filter_params)
-            qk=0;
-        elseif any(cellfun(@isempty,obj.filter_params.sgolay32_params))
-            fields = fieldnames(obj.result);
-            if and(any(strcmp(fields,'d2Tdx2_hot')),any(strcmp(fields,'d2Tdy2_hot')))
-                errord2Tdx2 = obj.HeatTransfer_params.Error.errord2Tdx2;
-                errord2Tdy2 = obj.HeatTransfer_params.Error.errord2Tdy2;
-                d2dTdx2     = normrnd(mean(obj.result.d2Tdx2_hot,3),mean(obj.result.d2Tdx2_hot,3).*errord2Tdx2);
-                d2dTdy2     = normrnd(mean(obj.result.d2Tdy2_hot,3),mean(obj.result.d2Tdy2_hot,3).*errord2Tdy2);
-                qk          = current.kplatex.*d2dTdx2+current.kplatey.*d2dTdy2; % [W/m^2]
-            else
-                qk = 0;
-            end
-        else
-            qk = 0;
-        end
+    if obj.HeatTransfer_params.spatial_der&&sder==1
+
+        errord2Tdx2 = obj.HeatTransfer_params.Error.errord2Tdx2;
+        errord2Tdy2 = obj.HeatTransfer_params.Error.errord2Tdy2;
+        d2dTdx2     = normrnd(d2Tdx2_m,d2Tdx2_m.*errord2Tdx2);
+        d2dTdy2     = normrnd(d2Tdy2_m,d2Tdy2_m.*errord2Tdy2);
+        qk          = current.kplatex.*d2dTdx2+current.kplatey.*d2dTdy2; % [W/m^2]
+
     else
         qk=0;
     end
@@ -427,21 +487,98 @@ for i=1:n
 end
 
 if obj.HeatTransfer_params.compute_h
-    obj.result.errorh   = squeeze(mean(mean(h,1),2));
-    obj.result.errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(obj.result.h,'all'))./mean(obj.result.h,'all').*100;
-    fprintf('The mean value of h is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorh),nanstd(obj.result.errorh));
+    errorh   = squeeze(mean(mean(h,1),2));
+    if strcmp(obj.output.type,'file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'errorh.mat']),"errorh",'-v7.3')
+            if isfile(strcat([obj.output.path,'h.mat']))
+                hres = load(strcat([obj.output.path,'h.mat']));
+                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'errorh_p.mat']),"errorh_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        else
+            save(strcat([obj.output.path,'\errorh.mat']),"errorh",'-v7.3')
+            if isfile(strcat([obj.output.path,'\h.mat']))
+                hres = load(strcat([obj.output.path,'\h.mat']));
+                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'\errorh_p.mat']),"errorh_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        end
+    else
+        hres = obj.result.h;
+        errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+        obj.result.errorh = errorh;
+        obj.result.errorh_p = errorh_p;
+    end
+    fprintf('The mean value of h is %.2f  with a standard deviation %.2f \n',nanmean(errorh),nanstd(errorh));
 end
+
 
 if obj.HeatTransfer_params.compute_Nu
-    obj.result.errorNu   = squeeze(mean(mean(Nu,1),2));
-    obj.result.errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(obj.result.Nu,'all'))./mean(obj.result.Nu,'all').*100;
-    fprintf('The mean value of Nu is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorNu),nanstd(obj.result.errorNu));
+    errorNu   = squeeze(mean(mean(Nu,1),2));
+    if strcmp(obj.output.type,'file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'errorNu.mat']),"errorNu",'-v7.3')
+            if isfile(strcat([obj.output.path,'Nu.mat']))
+                hres = load(strcat([obj.output.path,'Nu.mat']));
+                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'errorNu_p.mat']),"errorNu_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        else
+            save(strcat([obj.output.path,'\errorNu.mat']),"errorNu",'-v7.3')
+            if isfile(strcat([obj.output.path,'\Nu.mat']))
+                hres = load(strcat([obj.output.path,'\Nu.mat']));
+                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'\errorh_p.mat']),"errorNu_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        end
+    else
+        hres = obj.result.Nu;
+        errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+        obj.result.errorNu = errorNu;
+        obj.result.errorNu_p = errorNu_p;
+    end
+    fprintf('The mean value of Nu is %.2f  with a standard deviation %.2f \n',nanmean(errorNu),nanstd(errorNu));
 end
 
+
 if obj.HeatTransfer_params.compute_St
-    obj.result.errorSt   = squeeze(mean(mean(St,1),2));
-    obj.result.errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(obj.result.St,'all'))./mean(obj.result.St,'all').*100;
-    fprintf('The mean value of St is %.2f  with a standard deviation %.2f \n',nanmean(obj.result.errorSt),nanstd(obj.result.errorSt));
+    errorSt   = squeeze(mean(mean(St,1),2));
+    if strcmp(obj.output.type,'file')
+        if endsWith(obj.output.path,'\')
+            save(strcat([obj.output.path,'errorSt.mat']),"errorSt",'-v7.3')
+            if isfile(strcat([obj.output.path,'St.mat']))
+                hres = load(strcat([obj.output.path,'St.mat']));
+                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'errorSt_p.mat']),"errorSt_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        else
+            save(strcat([obj.output.path,'\errorSt.mat']),"errorSt",'-v7.3')
+            if isfile(strcat([obj.output.path,'\St.mat']))
+                hres = load(strcat([obj.output.path,'\St.mat']));
+                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                save(strcat([obj.output.path,'\errorh_p.mat']),"errorSt_p",'-v7.3')
+            else
+                warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
+            end
+        end
+    else
+        hres = obj.result.St;
+        errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+        obj.result.errorSt = errorSt;
+        obj.result.errorSt_p = errorSt_p;
+    end
+    fprintf('The mean value of St is %.2f  with a standard deviation %.2f \n',nanmean(errorSt),nanstd(errorSt));
 end
 
 end
