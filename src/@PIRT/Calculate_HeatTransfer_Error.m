@@ -382,8 +382,10 @@ if strcmp(obj.output.type,'file')
             tder = 0;
         end
     end
-    dTdt_m = mean(dTdt_hot,3);
-    clear dTdt_hot
+    if tder == 1
+        dTdt_m = mean(dTdt_hot,3);
+        clear dTdt_hot
+    end
 else
     fields = fieldnames(obj.result);
     if any(strcmp(fields,'dTdt_hot'))
@@ -413,9 +415,11 @@ if strcmp(obj.output.type,'file')
             sder = 0;
         end
     end
-    d2Tdx2_m = mean(d2Tdx2_hot,3);
-    d2Tdy2_m = mean(d2Tdy2_hot,3);
-    clear d2Tdx2_hot d2Tdy2_hot
+    if sder==1
+        d2Tdx2_m = mean(d2Tdx2_hot,3);
+        d2Tdy2_m = mean(d2Tdy2_hot,3);
+        clear d2Tdx2_hot d2Tdy2_hot
+    end
 else
     fields = fieldnames(obj.result);
     if any(strcmp(fields,'d2Tdx2_hot'))&&any(strcmp(fields,'d2Tdy2_hot'))
@@ -493,7 +497,7 @@ if obj.HeatTransfer_params.compute_h
             save(strcat([obj.output.path,'errorh.mat']),"errorh",'-v7.3')
             if isfile(strcat([obj.output.path,'h.mat']))
                 hres = load(strcat([obj.output.path,'h.mat']));
-                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres.h,'all'))./mean(hres.h,'all').*100;
                 save(strcat([obj.output.path,'errorh_p.mat']),"errorh_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
@@ -502,7 +506,7 @@ if obj.HeatTransfer_params.compute_h
             save(strcat([obj.output.path,'\errorh.mat']),"errorh",'-v7.3')
             if isfile(strcat([obj.output.path,'\h.mat']))
                 hres = load(strcat([obj.output.path,'\h.mat']));
-                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorh_p = abs(squeeze(mean(mean(h,1),2))-mean(hres.h,'all'))./mean(hres.h,'all').*100;
                 save(strcat([obj.output.path,'\errorh_p.mat']),"errorh_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
@@ -525,7 +529,7 @@ if obj.HeatTransfer_params.compute_Nu
             save(strcat([obj.output.path,'errorNu.mat']),"errorNu",'-v7.3')
             if isfile(strcat([obj.output.path,'Nu.mat']))
                 hres = load(strcat([obj.output.path,'Nu.mat']));
-                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres.Nu,'all'))./mean(hres.Nu,'all').*100;
                 save(strcat([obj.output.path,'errorNu_p.mat']),"errorNu_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
@@ -534,7 +538,7 @@ if obj.HeatTransfer_params.compute_Nu
             save(strcat([obj.output.path,'\errorNu.mat']),"errorNu",'-v7.3')
             if isfile(strcat([obj.output.path,'\Nu.mat']))
                 hres = load(strcat([obj.output.path,'\Nu.mat']));
-                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorNu_p = abs(squeeze(mean(mean(Nu,1),2))-mean(hres.Nu,'all'))./mean(hres.Nu,'all').*100;
                 save(strcat([obj.output.path,'\errorh_p.mat']),"errorNu_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
@@ -557,7 +561,7 @@ if obj.HeatTransfer_params.compute_St
             save(strcat([obj.output.path,'errorSt.mat']),"errorSt",'-v7.3')
             if isfile(strcat([obj.output.path,'St.mat']))
                 hres = load(strcat([obj.output.path,'St.mat']));
-                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres.St,'all'))./mean(hres.St,'all').*100;
                 save(strcat([obj.output.path,'errorSt_p.mat']),"errorSt_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')
@@ -566,7 +570,7 @@ if obj.HeatTransfer_params.compute_St
             save(strcat([obj.output.path,'\errorSt.mat']),"errorSt",'-v7.3')
             if isfile(strcat([obj.output.path,'\St.mat']))
                 hres = load(strcat([obj.output.path,'\St.mat']));
-                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres,'all'))./mean(hres,'all').*100;
+                errorSt_p = abs(squeeze(mean(mean(St,1),2))-mean(hres.St,'all'))./mean(hres.St,'all').*100;
                 save(strcat([obj.output.path,'\errorh_p.mat']),"errorSt_p",'-v7.3')
             else
                 warning('PIRT:Calculate_HeatTransfer_Error: The percentage error could not be computed since the h data was not found.')

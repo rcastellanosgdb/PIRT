@@ -124,7 +124,7 @@ else
     output.type = 'internal';
 end
 
-obj.cropping_points = cropping_points;
+obj.output = output;
 
 if any(strcmp(varargin,'CalculateHeatTransfer'))
     if or(anynan(obj.Thot),anynan(obj.Tcold))

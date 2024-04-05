@@ -257,7 +257,9 @@ if obj.HeatTransfer_params.spatial_der
                 disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
                 if endsWith(obj.output.path,'\')
                     save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                    save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                 else
+                    save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
                     save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                 end
                 clear d2Tdx2_hot d2Tdy2_hot
@@ -300,7 +302,9 @@ if obj.HeatTransfer_params.spatial_der
                             disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
                             if endsWith(obj.output.path,'\')
                                 save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                                save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                             else
+                                save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
                                 save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                             end
                             clear d2Tdx2_hot d2Tdy2_hot
@@ -342,7 +346,9 @@ if obj.HeatTransfer_params.spatial_der
                             disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
                             if endsWith(obj.output.path,'\')
                                 save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                                save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                             else
+                                save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
                                 save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                             end
                             clear d2Tdx2_hot d2Tdy2_hot
@@ -385,7 +391,9 @@ if obj.HeatTransfer_params.spatial_der
                         disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
                         if endsWith(obj.output.path,'\')
                             save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                            save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                         else
+                            save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
                             save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                         end
                         clear d2Tdx2_hot d2Tdy2_hot
@@ -418,7 +426,9 @@ if obj.HeatTransfer_params.spatial_der
                 disp('--> Saving d2Tdx2 and d2Tdy2 information into file')
                 if endsWith(obj.output.path,'\')
                     save(strcat([obj.output.path,'d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
+                    save(strcat([obj.output.path,'d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                 else
+                    save(strcat([obj.output.path,'\d2Tdx2.mat']),"d2Tdx2_hot",'-v7.3')
                     save(strcat([obj.output.path,'\d2Tdy2.mat']),"d2Tdy2_hot",'-v7.3')
                 end
                 clear d2Tdx2_hot d2Tdy2_hot
