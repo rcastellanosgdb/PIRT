@@ -23,25 +23,23 @@ X = M-M_mean; clear("M");
 
 % Use the correlation matrix to minimize computational cost
 if size(X,2)>=size(X,1) % More snapshots than temporal resolution
-    C1 = X*X';
-    [U,LAM] = eig(C1,'vector');
+    [U,LAM] = eig(X*X','vector');
     % Sort eigenvalues and eigenvectors
     [lambda,ilam] = sort(LAM,'descend');
     U = U(:, ilam); % These are the spatial modes
-    S = sqrt(diag(lambda));
+    S = sqrt(diag(lambda)); clear LAM lambda ilam;
     % Calculate time coefficients
-    V = X'*(U/S);
+    V = X'*(U/S); clear X;
 
 else % More spatial resolution than snapshots
-    C2 = X'*X;
     % Solve eigenvalue problem
-    [V,LAM] = eig(C2,'vector');
+    [V,LAM] = eig(X'*X,'vector');
     % Sort eigenvalues and eigenvectors
     [lambda,ilam] = sort(LAM,'descend');
     V = V(:,ilam); % These are the spatial modes
-    S = sqrt(diag(lambda));
+    S = sqrt(diag(lambda)); clear LAM lambda ilam;
     % Calculate time coefficients
-    U = X*(V/S);
+    U = X*(V/S); clear X;
 end
 
 %-- Find the number of optimum modes to reconstruct
@@ -54,8 +52,9 @@ if isempty(Nmod)
     end
 end
 
-rec = U(:,1:Nmod)*S(1:Nmod,1:Nmod)*V(:,1:Nmod)';
-Xf  = reshape(rec+M_mean, [H,W,T]); %Add back the mean and reshape
+% Reconstruct:
+X = U(:,1:Nmod)*S(1:Nmod,1:Nmod)*V(:,1:Nmod)'; % Overwrite for memory issues
+X  = reshape(X+M_mean, [H,W,T]); %Add back the mean and reshape
 end
 
 %- Aux func:
@@ -64,11 +63,12 @@ trunc_options = {};
 Nmod = [];
 if ~isempty(varargin)
     if any(strcmp(varargin,'Nmod'))
-            idx = find(strcmp(varargin,'Nmod'));
-            Nmod = varargin{idx+1};
-    end
-
-
+        idx = find(strcmp(varargin,'Nmod'));
+        Nmod = varargin{idx+1};
+        if ~isnumeric(Nmod)
+            error('PIRT:findNmod: The introduced Nmod must be numeric')
+        end
+    else
         trunc_options = varargin;
         if any(strcmp(varargin,'Criterion'))
             idx = find(strcmp(varargin,'Criterion'));
