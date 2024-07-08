@@ -488,7 +488,7 @@ if any(strcmp(params,'Temporal'))
     else
         if any(strcmp(names,'fh'))
             % High-pass
-            cutoff_params.Temporal{2} = spatial.fh;
+            cutoff_params.Temporal{2} = temporal.fh;
             cutoff_params.Temporal{3} = 'high';
         else
             error('PIRT:parse_PIRT_filter: A temporal cutoff frequency was not specified, either fl, fh or both must be introduced')
