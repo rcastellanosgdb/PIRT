@@ -86,6 +86,14 @@ if ~isempty(varargin)
                         trunc_options{length(trunc_options)+1} = images_shape(3)/(images_shape(1)*images_shape(2));
                         warning('PIRT:findNmod: The data aspect ratio "beta" was not introduced and is selected as default the aspect ratio')
                     end
+                otherwise
+                    if any(strcmp(varargin,'Threshold'))
+                        idx = find(strcmp(varargin,'Threshold'));
+                        threshold = varargin{idx+1};
+                        if ~isnumeric(threshold)
+                            error('PIRT:findNmod: The introduced Threshold must be numeric')
+                        end
+                    end
             end
         end
     end

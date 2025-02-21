@@ -38,6 +38,8 @@ if ~isUnderlyingType(g, 'double')
     g = im2double(g);
 end
 
+% org = g;
+
 % Estimate the local mean of f.
 filter3 =@(stencil,X) convn(X,stencil,'same');
 
@@ -64,6 +66,34 @@ localVar = max(localVar, noise);
 f = f ./ localVar;
 f = f .* g;
 f = f + localMean;
+% aaaaaa = f;
+% 
+% time_series = reshape(org(351,200,:),[size(org,3),1]);
+% Fs = 253;            % Sampling frequency
+% T = 1/Fs;             % Sampling period
+% L = size(time_series,1);             % Length of signal
+% t = (0:L-1)*T;        % Time vector
+% f = Fs/L*(0:(L/2));
+% 
+% han_l    = 512;
+% noverlap = han_l/2;
+% P1 = pwelch(time_series,hanning(han_l),noverlap,f,Fs);
+% semilogy(f,P1,'b')
+% hold on
+% 
+% clear time_series
+% time_series = reshape(aaaaaa(351,200,:),[size(aaaaaa,3),1]);
+% Fs = 253;            % Sampling frequency
+% T = 1/Fs;             % Sampling period
+% L = size(time_series,1);             % Length of signal
+% t = (0:L-1)*T;        % Time vector
+% f = Fs/L*(0:(L/2));
+% 
+% han_l    = 512;
+% noverlap = han_l/2;
+% P1 = pwelch(time_series,hanning(han_l),noverlap,f,Fs);
+% semilogy(f,P1,'r')
+
 
 if classChanged
     f = images.internal.changeClass(classin, f);

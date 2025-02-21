@@ -112,9 +112,12 @@ if ~isempty(varargin)
             warning('PIRT:findNmod: The introduced theshold can not be bigger than 1. The threshold selected was 0.999')
             threshold = 0.999;
         end
-    elseif flag~=3
+    elseif flag==2
         warning('PIRT:findNmod: The default threshold is 0.999')
         threshold = 0.999;
+    elseif flag==1
+        warning('PIRT:findNmod: The default threshold is 0.99')
+        threshold = 0.99;
     end
 
 else

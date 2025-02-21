@@ -376,7 +376,6 @@ end
 end
 
 function gaussian_params = checksGaussian(params)
-
 if any(strcmp(params,'Sigma'))
     idx = find(strcmp(params,'Sigma'));
     gaussian_params.Sigma = params{idx+1};
@@ -430,6 +429,10 @@ if any(strcmp(params,'FilterDomain'))
 
             error('PIRT:parse_PIRT_filter: The introduced selection for the FilterDomain in the imagaussfilt3 was not valid')
     end
+end
+
+if ~exist('gaussian_params','var')
+    gaussian_params=struct([]);
 end
 
 end

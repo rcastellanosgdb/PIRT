@@ -146,10 +146,47 @@ if any(strcmp(varargin,'HFS'))
             idx = find(strcmp(hfs_data,'k'));
             HFS.k = hfs_data{idx+1};
             if ~isfloat(HFS.k )
-                error('PIRT:parse_PIRT_HeatTransfer:The HFS thermal conductivity "k" must be introduced as a float value')
+                error('PIRT:parse_PIRT_HeatTransfer:The HFS thermal conductance "k" must be introduced as a float value')
             end
         else
-            warning('PIRT:parse_PIRT_HeatTransfer:The HFS thermal conductivity must be introduced  to calculate the heat transfer and identified by "k"')
+            warning('PIRT:parse_PIRT_HeatTransfer:The HFS thermal conductance must be introduced  to calculate the heat transfer and identified by "k"')
+        end
+
+        if any(strcmp(hfs_data,'sides'))
+            idx = find(strcmp(hfs_data,'sides'));
+            HFS.sides = hfs_data{idx+1};
+            if ~isfloat(HFS.sides )
+                error('PIRT:parse_PIRT_HeatTransfer:The number of sides to take into account "sides" must be introduced as a float value')
+            end
+        end
+
+        if any(strcmp(hfs_data,'s_paint'))
+            idx = find(strcmp(hfs_data,'s_paint'));
+            HFS.s_paint = hfs_data{idx+1};
+            if ~isfloat(HFS.s_paint )
+                error('PIRT:parse_PIRT_HeatTransfer:The thickness of the paint "s_paint" must be introduced as a float value')
+            end
+        end
+        if any(strcmp(hfs_data,'rho_paint'))
+            idx = find(strcmp(hfs_data,'rho_paint'));
+            HFS.rho_paint = hfs_data{idx+1};
+            if ~isfloat(HFS.rho_paint )
+                error('PIRT:parse_PIRT_HeatTransfer:The density of the paint "rho_paint" must be introduced as a float value')
+            end
+        end
+        if any(strcmp(hfs_data,'cp_paint'))
+            idx = find(strcmp(hfs_data,'cp_paint'));
+            HFS.cp_paint = hfs_data{idx+1};
+            if ~isfloat(HFS.cp_paint )
+                error('PIRT:parse_PIRT_HeatTransfer:The heat capacity of the paint "cp_paint" must be introduced as a float value')
+            end
+        end
+        if any(strcmp(hfs_data,'lambda_paint'))
+            idx = find(strcmp(hfs_data,'lambda_paint'));
+            HFS.lambda_paint = hfs_data{idx+1};
+            if ~isfloat(HFS.lambda_paint)
+                error('PIRT:parse_PIRT_HeatTransfer:The thermal conductivity of the paint "lambda_paint" must be introduced as a float value')
+            end
         end
 
 %         HFS.k = HFS.s*HFS.lambda;
@@ -398,7 +435,47 @@ if any(strcmp(varargin,'Error'))
                 error('PIRT:parse_PIRT_HeatTransfer:The error in the k of the air must be introduced as a float value')
             end
         else
-            error('PIRT:parse_PIRT_HeatTransfer:The error in the k of the air of value must be introduced to calculate the heat transfer error estimation')
+            error('PIRT:parse_PIRT_HeatTransfer:The error in the k of the air value must be introduced to calculate the heat transfer error estimation')
+        end
+
+        if any(strcmp(err,'errorcp_paint'))
+            idx = find(strcmp(err,'errorcp_paint'));
+            Error.errorcp_paint = err{idx+1};
+            if ~isfloat(Error.errorcp_paint)
+                error('PIRT:parse_PIRT_HeatTransfer:The error in the cp of the paint must be introduced as a float value')
+            end
+        else
+            error('PIRT:parse_PIRT_HeatTransfer:The error in the cp of the paint must be introduced to calculate the heat transfer error estimation')
+        end
+
+        if any(strcmp(err,'errors_paint'))
+            idx = find(strcmp(err,'errors_paint'));
+            Error.errors_paint = err{idx+1};
+            if ~isfloat(Error.errors_paint)
+                error('PIRT:parse_PIRT_HeatTransfer:The error in the s of the paint must be introduced as a float value')
+            end
+        else
+            error('PIRT:parse_PIRT_HeatTransfer:The error in the s of the paint must be introduced to calculate the heat transfer error estimation')
+        end
+
+        if any(strcmp(err,'errorlambda_paint'))
+            idx = find(strcmp(err,'errorlambda_paint'));
+            Error.errorlambda_paint = err{idx+1};
+            if ~isfloat(Error.errorlambda_paint)
+                error('PIRT:parse_PIRT_HeatTransfer:The error in the lambda of the paint must be introduced as a float value')
+            end
+        else
+            error('PIRT:parse_PIRT_HeatTransfer:The error in the lambda of the paint must be introduced to calculate the heat transfer error estimation')
+        end
+
+        if any(strcmp(err,'errorrho_paint'))
+            idx = find(strcmp(err,'errorrho_paint'));
+            Error.errorrho_paint = err{idx+1};
+            if ~isfloat(Error.errorrho_paint)
+                error('PIRT:parse_PIRT_HeatTransfer:The error in the rho of the paint must be introduced as a float value')
+            end
+        else
+            error('PIRT:parse_PIRT_HeatTransfer:The error in the rho of the paint must be introduced to calculate the heat transfer error estimation')
         end
 
         if any(strcmp(err,'errorUinf'))

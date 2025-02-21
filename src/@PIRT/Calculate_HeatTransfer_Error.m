@@ -323,18 +323,48 @@ Tcold     = checkCelsius(Tcold,threshold);
 Tamb_hot  = checkCelsius(Tamb_hot,threshold);
 Tamb_cold = checkCelsius(Tamb_cold,threshold);
 
-errorT       = obj.HeatTransfer_params.Error.errorT;
-errorTamb    = obj.HeatTransfer_params.Error.errorTamb;
-errorV       = obj.HeatTransfer_params.Error.errorV;
-errorI       = obj.HeatTransfer_params.Error.errorI;
-errorEpsilon = obj.HeatTransfer_params.Error.errorEpsilon;
-errorrho     = obj.HeatTransfer_params.Error.errorrho;
-errorcp      = obj.HeatTransfer_params.Error.errorcp;
-errors       = obj.HeatTransfer_params.Error.errors;
-errorAboard  = obj.HeatTransfer_params.Error.errorAboard;
-errorkplate  = obj.HeatTransfer_params.Error.errorkplate;
-errorLchar   = obj.HeatTransfer_params.Error.errorLchar;
-errork       = obj.HeatTransfer_params.Error.errork;
+hfs_data = fieldnames(obj.HeatTransfer_params.HFS);
+if ~any(strcmp(hfs_data,'s_paint'))
+    warning('PIRT:Calculate_HeatTransfer: the paint thickness s_paint was not introduced,  it will be set to a standard value of s_paint=21.81*10-6 m. Ref. Stafford, Jason / Walsh, Ed / Egan, Vanessa Characterizing convective heat transfer using infrared thermography and the heated-thin-foil technique 2009-09')
+    s_paint = 21.81*(10^(-6));
+else
+    s_paint = obj.HeatTransfer_params.HFS.s_paint;
+end
+if ~any(strcmp(hfs_data,'rho_paint'))
+    warning('PIRT:Calculate_HeatTransfer: the paint density rho_paint was not introduced,  it will be set to a standard value of rho_paint=1300 kg/m3.')
+    rho_paint = 1300;
+else
+    rho_paint = obj.HeatTransfer_params.HFS.rho_paint;
+end
+if ~any(strcmp(hfs_data,'cp_paint'))
+    warning('PIRT:Calculate_HeatTransfer: the paint heat capacity cp_paint was not introduced,  it will be set to a standard value of s_paint=5000 J/kgK.')
+    cp_paint = 5000;
+else
+    cp_paint = obj.HeatTransfer_params.HFS.cp_paint;
+end
+if ~any(strcmp(hfs_data,'lambda_paint'))
+    warning('PIRT:Calculate_HeatTransfer: ther thermal conductivity lambda_paint of the paint was not introduced, it will be set to a standard value of matte black paint lambda_foil=1.38 W/mK. Ref. Raghu O and Philip J 2006 Thermal properties of paint coatings on different backings using a scanning photo acoustic technique Meas. Sci. Technol. 17 2945–9')
+    lambda_paint = 1.38;
+else
+    lambda_paint = obj.HeatTransfer_params.HFS.lambda_paint;
+end
+
+errorT            = obj.HeatTransfer_params.Error.errorT;
+errorTamb         = obj.HeatTransfer_params.Error.errorTamb;
+errorV            = obj.HeatTransfer_params.Error.errorV;
+errorI            = obj.HeatTransfer_params.Error.errorI;
+errorEpsilon      = obj.HeatTransfer_params.Error.errorEpsilon;
+errorrho          = obj.HeatTransfer_params.Error.errorrho;
+errorcp           = obj.HeatTransfer_params.Error.errorcp;
+errors            = obj.HeatTransfer_params.Error.errors;
+errorAboard       = obj.HeatTransfer_params.Error.errorAboard;
+errorkplate       = obj.HeatTransfer_params.Error.errorkplate;
+errorLchar        = obj.HeatTransfer_params.Error.errorLchar;
+errork            = obj.HeatTransfer_params.Error.errork;
+errorrho_paint    = obj.HeatTransfer_params.Error.errorrho_paint;
+errorlambda_paint = obj.HeatTransfer_params.Error.errorlambda_paint;
+errorcp_paint     = obj.HeatTransfer_params.Error.errorcp_paint;
+errors_paint      = obj.HeatTransfer_params.Error.errors_paint;
 
 if obj.HeatTransfer_params.compute_St
     err=fieldnames(obj.HeatTransfer_params.Error);
@@ -348,9 +378,9 @@ if obj.HeatTransfer_params.compute_St
             'value must be introduced to calculate the heat transfer ' ...
             'error estimation for St'])
     end
-    Uinf    = obj.HeatTransfer_params.conditions.Uinf;
-    errorUinf = obj.HeatTransfer_params.Error.errorUinf;
-    rhoinf    = obj.HeatTransfer_params.conditions.rhoinf;
+    Uinf        = obj.HeatTransfer_params.conditions.Uinf;
+    errorUinf   = obj.HeatTransfer_params.Error.errorUinf;
+    rhoinf      = obj.HeatTransfer_params.conditions.rhoinf;
     errorrhoinf = obj.HeatTransfer_params.Error.errorrhoinf;
 end
 
@@ -433,37 +463,41 @@ end
 
 
 for i=1:n
-
-    current.Thot      = normrnd(Thot,Thot.*errorT);
-    current.Tcold     = normrnd(Tcold,Tcold.*errorT);
-    current.Tamb_cold = normrnd(Tamb_cold,Tamb_cold.*errorTamb);
-    current.Tamb_hot  = normrnd(Tamb_hot,Tamb_hot.*errorTamb);
-    current.V         = normrnd(V,V.*errorV);
-    current.I         = normrnd(I,I.*errorI);
-    current.epsilon   = normrnd(epsilonboard,epsilonboard.*errorEpsilon);
-    current.rho       = normrnd(rho,rho.*errorrho);
-    current.cp        = normrnd(cp,cp.*errorcp);
-    current.s         = normrnd(s,s.*errors);
-    current.kplatex   = normrnd(kplatex,kplatex.*errorkplate);
-    current.kplatey   = normrnd(kplatey,kplatey.*errorkplate);
-    current.Aboard    = normrnd(Aboard,Aboard.*errorAboard);
-    current.L_char    = normrnd(L_char,L_char.*errorLchar);
-    current.k         = normrnd(k,k.*errork);
+    fprintf('Sample %d/%d\r', i, n);  % Overwrites the line each time
+    current.Thot      = normrnd(Thot,abs(errorT)); % absolute error
+    current.Tcold     = normrnd(Tcold,abs(errorT)); % absolute error
+    current.Tamb_cold = normrnd(Tamb_cold,abs(errorTamb)); % absolute error
+    current.Tamb_hot  = normrnd(Tamb_hot,abs(errorTamb)); % absolute error
+    current.V         = normrnd(V,abs(V.*errorV));
+    current.I         = normrnd(I,abs(I.*errorI));
+    current.epsilon   = normrnd(epsilonboard,abs(epsilonboard.*errorEpsilon));
+    current.rho       = normrnd(rho,abs(rho.*errorrho));
+    current.cp        = normrnd(cp,abs(cp.*errorcp));
+    current.s         = normrnd(s,abs(s.*errors));
+    current.kplatex   = normrnd(kplatex,abs(kplatex.*errorkplate));
+    current.kplatey   = normrnd(kplatey,abs(kplatey.*errorkplate));
+    current.Aboard    = normrnd(Aboard,abs(Aboard.*errorAboard));
+    current.L_char    = normrnd(L_char,abs(L_char.*errorLchar));
+    current.k         = normrnd(k,abs(k.*errork));
+    current.cp_paint  = normrnd(cp_paint, abs(cp_paint.*errorcp_paint));
+    current.s_paint   = normrnd(s_paint, abs(s_paint.*errors_paint));
+    current.rho_paint = normrnd(rho_paint, abs(rho_paint.*errorrho_paint));
+    current.lambda_p  = normrnd(lambda_paint, abs(lambda_paint.*errorlambda_paint));
+    current.kp        = current.lambda_p*current.s_paint;
 
     ratio   = current.Tamb_hot/current.Tamb_cold;
 
-    qj      = current.V*current.I/(current.Aboard); %[W/m^2]
+    q    = current.V*current.I/(current.Aboard); %[W/m^2]
 
     %-- Radiative heat flux: qr = σ·ε·(Th⁴-Tc⁴)
-    qrad    = sigma.*current.epsilon.*(current.Thot.^4-current.Tamb_hot.^4); % [W/m^2]
+    q    = q - sigma.*current.epsilon.*(current.Thot.^4-current.Tamb_hot.^4); % [W/m^2]
 
     %-- Internal energy
     if obj.HeatTransfer_params.time_der&&tder==1
         errordTdt = obj.HeatTransfer_params.Error.errordTdt;
-        dTdt_hot  = normrnd(dTdt_m,dTdt_m.*errordTdt);
-        unsteady  = current.rho*current.s*current.cp*dTdt_hot; % [W/m^2]
-    else
-        unsteady=0;
+        dTdt_hot  = normrnd(dTdt_m,abs(dTdt_m.*errordTdt));
+        q  = q - (current.rho*current.s*current.cp + current.rho_paint*current.s_paint*current.cp_paint)*dTdt_hot; % [W/m^2]
+
     end
 
     %-- Tangencial conduction heat flux
@@ -471,21 +505,18 @@ for i=1:n
 
         errord2Tdx2 = obj.HeatTransfer_params.Error.errord2Tdx2;
         errord2Tdy2 = obj.HeatTransfer_params.Error.errord2Tdy2;
-        d2dTdx2     = normrnd(d2Tdx2_m,d2Tdx2_m.*errord2Tdx2);
-        d2dTdy2     = normrnd(d2Tdy2_m,d2Tdy2_m.*errord2Tdy2);
-        qk          = current.kplatex.*d2dTdx2+current.kplatey.*d2dTdy2; % [W/m^2]
-
-    else
-        qk=0;
+        d2dTdx2     = normrnd(d2Tdx2_m,abs(d2Tdx2_m.*errord2Tdx2));
+        d2dTdy2     = normrnd(d2Tdy2_m,abs(d2Tdy2_m.*errord2Tdy2));
+        q           = q - (current.kplatex + current.kp).*d2dTdx2 + (current.kplatey  + current.kp).*d2dTdy2; % [W/m^2]
     end
 
-    h(:,:,i)  = ( -qk - qrad + qj - unsteady ) ./ (current.Thot - (current.Tcold*ratio) ); %[W/K m^2]
+    h(:,:,i)  = q ./ (current.Thot - (current.Tcold*ratio) ); %[W/K m^2]
     if obj.HeatTransfer_params.compute_Nu
         Nu(:,:,i) = h(:,:,i).*current.L_char./current.k;
     end
     if obj.HeatTransfer_params.compute_St
-        current.Uinf    = normrnd(Uinf,Uinf.*errorUinf);
-        current.rhoinf    = normrnd(rhoinf,rhoinf.*errorrhoinf);
+        current.Uinf    = normrnd(Uinf,abs(Uinf.*errorUinf));
+        current.rhoinf    = normrnd(rhoinf,abs(rhoinf.*errorrhoinf));
         St(:,:,i) = h(:,:,i)./(current.rho*current.cp*current.Uinf);
     end
 end

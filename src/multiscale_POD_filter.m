@@ -91,11 +91,6 @@ switch params.type
         clear filter
 end
 
-% if Path
-%     mkdir(strcat(Path,'\mPODdata'));
-%     FH = figure; spy(H);
-%     saveas(FH,strcat(Path,'\mPODdata\FilterMatrix_',Tcase))
-% end
 
 %% Filter and recover
 K = K.*H; % Apply filter to the time correlation matrix in Fourier domain (frequency domain)
@@ -113,6 +108,7 @@ clear Fmat
 
 %-- Decompose the filtered time correlation matrix
 [U,S,~] = svd(K, 'econ');
+% Nmod = findNmod(S,'Criterion','HardThreshold','beta',2000/(399*604));
 if isfield(params,'Threshold')
     Nmod = findNmod(S,'Criterion','Elbow','Threshold',params.Threshold);
 else
@@ -123,10 +119,6 @@ clear K
 %-- Get spatial modes:
 PHI = D*U/S.^0.5;
 clear D
-% if Path
-%     path_mPOD = strcat(Path,'\mPODdata\svd_',Tcase);
-%     savefast(path_mPOD,'U','S','PHI');
-% end
 S = sparse(S);
 
 %-- Reconstruct the matrix D:

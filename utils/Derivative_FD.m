@@ -33,18 +33,18 @@ if spatial == 1
     dTdy2 = zeros(size(T));
     % Derivative using centered formula
     dTdy2(:,2:end-1,:) = (T(:,3:end,:)-2*T(:,2:end-1,:)+T(:,1:end-2,:))/dy^2;
-    % Left margin with forward approximation
-    dTdy2(:,1,:) = (2*T(:,1,:)-5*T(:,2,:)+4*T(:,3,:)-T(:,4,:))/dy^3;
-    % Right margin with backward approximation
-    dTdy2(:,end,:) = (2*T(:,end,:)-5*T(:,end-1,:)+4*T(:,end-2,:)-T(:,end-3,:))/dy^3;
+    % Left margin with second-order forward approximation
+    dTdy2(:,1,:) = (T(:,3,:) - 2*T(:,2,:) + T(:,1,:)) / dy^2;
+    % Right margin with second-order backward approximation
+    dTdy2(:,end,:) = (T(:,end-2,:) - 2*T(:,end-1,:) + T(:,end,:)) / dy^2;
 
     dTdx2 = zeros(size(T));
     % Derivative using centered formula
     dTdx2(2:end-1,:,:) = (T(3:end,:,:)-2*T(2:end-1,:,:)+T(1:end-2,:,:))/dx^2;
-    % Left margin with forward approximation
-    dTdx2(1,:,:) = (2*T(1,:,:)-5*T(2,:,:)+4*T(3,:,:)-T(4,:,:))/dx^3;
-    % Right margin woth backward approximation
-    dTdx2(end,:,:) = (2*T(end,:,:)-5*T(end-1,:,:)+4*T(end-2,:,:)-T(end-3,:,:))/dx^3;
+    % Left margin with second-order forward approximation
+    dTdx2(1,:,:) = (T(3,:,:) - 2*T(2,:,:) + T(1,:,:)) / dx^2;
+    % Right margin with second-order backward approximation
+    dTdx2(end,:,:) = (T(end-2,:,:) - 2*T(end-1,:,:) + T(end,:,:)) / dx^2;
 end
 
 if temporal == 1

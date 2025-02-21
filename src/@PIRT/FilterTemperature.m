@@ -156,14 +156,22 @@ if ismember('FilterDomain',fields)
 end
 
 if ismember('Sigma',fields)
-    obj.result.Thot_new = imgaussfilt3(Tmat,...
-        obj.filter_params.gaussian_params{idx}.Sigma,...
-        extraargs);
-elseif isempty(extraargs)
-    obj.result.Thot_new = imgaussfilt3(Tmat);
+    if isempty(extraargs)
+        obj.result.Thot_new = imgaussfilt3(Tmat,...
+            obj.filter_params.gaussian_params{idx}.Sigma);
+    else
+        obj.result.Thot_new = imgaussfilt3(Tmat,...
+            obj.filter_params.gaussian_params{idx}.Sigma,...
+            extraargs{:});
+    end
+
 else
-    [obj.result.Thot_new,obj.result.noise_hot] = imgaussfilt3(Tmat,...
-        extraargs);
+    if isempty(extraargs)
+        obj.result.Thot_new = imgaussfilt3(Tmat);
+    else
+        obj.result.Thot_new = imgaussfilt3(Tmat,extraargs{:});
+    end
+         
 
 end
 
