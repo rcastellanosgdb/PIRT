@@ -1,0 +1,17 @@
+-- Resolution of the target
+10                   	TargetResolution - Distance between target circles [mm]
+223			            TargetXorigin	- X origin target center [pix]
+257			            TargetYorigin	- Y origin target center [pix]
+--Characteristic length for Nusselt calculation
+10e-3					L_char  - [m] 
+-- Heated Thin Foil parameters
+0.01e-3	                s 		- [m] thickness of steel plate
+7900	                rho 	- [kg/m^3] density of the material
+460 					cp 		- [J/kgK] specific heat
+14.7					lambda 	- [W/(mK)] conductive coefficient
+0.276					H 		- [m] dimension of the foil
+0.1 					W 		- [m] dimension of the foil
+0.95					epsilon - [] emisivity of the foil 
+-- Constants
+9.80665 				g 		- [m/s^2] gravity constant
+5.67e-8  				sigma   - [W/(m^2 K^4)] Stefan-Boltzmann constant

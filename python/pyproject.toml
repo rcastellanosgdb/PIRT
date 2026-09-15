@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pirt"
+version = "1.0.0"
+description = "PIRT - Processing InfraRed Thermography: filtering and heated-thin-foil heat transfer computation"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.9"
+authors = [
+  {name = "I. Robledo"}, {name = "J. Alfaro"}, {name = "R. Castellanos"},
+]
+keywords = ["infrared thermography", "heat transfer", "heated thin foil", "POD", "Savitzky-Golay"]
+dependencies = [
+  "numpy>=1.22",
+  "scipy>=1.8",
+]
+
+[project.optional-dependencies]
+io = ["h5py>=3.0"]
+plot = ["matplotlib>=3.4"]
+test = ["pytest>=7", "h5py>=3.0"]
+
+[project.urls]
+Repository = "https://github.com/rcastellanosgdb/PIRT"
+
+[tool.setuptools.packages.find]
+include = ["pirt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
