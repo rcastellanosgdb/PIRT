@@ -40,7 +40,14 @@ Fixes (all documented in the corresponding function headers):
   tangential term had the wrong sign (`- kx*d2Tdx2 + ky*d2Tdy2`), and the film
   temperature for `k_air` was `(Thot+Tcold)/2` instead of the `(Thot+Tamb)/2`
   used by `Calculate_HeatTransfer.m`. All three are now consistent with the
-  deterministic balance.
+  deterministic balance. Consequence for the uncertainty figures of the paper
+  (`SJ_main_12_error.m`, `sides = 2`): the missing factor shifted the sampled
+  mean Nusselt number by about +5.5 % with respect to the deterministic value
+  (39.9 vs 37.8), so the quoted 5.7 % "uncertainty in the mean Nusselt
+  number" is dominated by this systematic offset; the propagated random
+  uncertainty of the spatially averaged Nu is about 3 % (1 sigma), while the
+  7.8 % of the fluctuating component is unaffected (see
+  `validation/REPORT.md`, Monte Carlo section).
 * `multiscale_POD_filter.m`: the filtered correlation matrix was transformed
   back to the time domain with the **forward** DFT matrix applied on both
   sides (`K = real(F*Khat*F)` instead of `real(F'*Khat*F')`). Since `F*F` is

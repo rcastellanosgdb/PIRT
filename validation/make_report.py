@@ -73,7 +73,7 @@ if mc_path.exists():
               "Savitzky-Golay, Nu with unsteady and tangential terms, uncertainties of `SJ_main_12_error.m`.", "",
               "| variant | quantity | mean | std | min | max |", "|---|---|---|---|---|---|"]
     for variant, block in mc.items():
-        if not isinstance(block, dict) or "samples" in variant:
+        if not isinstance(block, dict):
             continue
         if all(isinstance(v, dict) for v in block.values()):
             for q, st in block.items():
@@ -81,6 +81,26 @@ if mc_path.exists():
         else:
             for q, v in block.items():
                 lines.append(f"| {variant} | {q} | {v:.4g} | | | |")
+    try:
+        det = mc["deterministic_adiabatic"]["Nu_mean"]
+        corr = mc["python_corrected_adiabatic"]["errorNu"]
+        rep = mc["paper_replica"]["errorNu"]
+        ref = mc["reference_paper_1000_samples"]["errorNu"]
+        ref_p = mc["reference_paper_1000_samples"]["errorNu_p"]
+        lines += ["", "Interpretation: `errorNu` is the spatially averaged Nusselt number of each Monte Carlo sample; ",
+                  f"the deterministic value is {det:.2f}. With the corrected balance the samples scatter around it ",
+                  f"({corr['mean']:.2f} +- {corr['std']:.2f}, i.e. a relative standard deviation of "
+                  f"{100 * corr['std'] / det:.1f} %; the sample mean differs from the deterministic value by "
+                  f"{100 * (corr['mean'] - det) / det:+.1f} %, i.e. {abs(corr['mean'] - det) / (corr['std'] / mc['samples'] ** 0.5):.1f} standard errors "
+                  f"of a {mc['samples']}-sample mean). The replica of the paper-version code gives {rep['mean']:.2f} +- {rep['std']:.2f} ",
+                  f"({100 * (rep['mean'] - det) / det:+.1f} % with respect to the deterministic value), reproducing the offset of "
+                  f"the reference file ({ref['mean']:.2f}, {100 * (ref['mean'] - det) / det:+.1f} %). The offset is the effect of the ",
+                  "missing `sides` factor in the radiative term of that implementation (expected +5.9 % for this case), so the ",
+                  f"'uncertainty of the mean Nusselt number' quoted from the reference file (`errorNu_p` = {ref_p['mean']:.1f} %) is ",
+                  f"dominated by this systematic offset; the propagated random uncertainty is about {100 * corr['std'] / det:.1f} % (1 sigma). ",
+                  "The uncertainty of the fluctuating component (`errorNuf_p`) is not affected by the offset."]
+    except KeyError:
+        pass
 
 (here / "REPORT.md").write_text("\n".join(lines) + "\n")
 print("REPORT.md written with", len(rows), "rows")

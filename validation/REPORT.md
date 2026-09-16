@@ -77,3 +77,40 @@ definition used for `k_air` (see README). `Nmod` is the number of POD/mPOD modes
 | qjqk_POD_gauss_sgolay11 | Nuf | adiabatic | 70 | 399x604 | 12.0822 | 12.0822 | 1.07e-10 | 5.15e-13 | 3.58e-13 | 4.12e-12 | 1.0000000000 |
 | qjqk_POD_gauss_sgolay11 | qunsrel | adiabatic | 70 | 399x604 | 0.276593 | 0.276593 | 6.02e-13 | 4.29e-13 | 3.02e-13 | 3.26e-12 | 1.0000000000 |
 | qjqk_POD_gauss_sgolay11 | qkrel | adiabatic | 70 | 399x604 | 0.00827196 | 0.00827196 | 3.39e-13 | 9.09e-12 | 1.41e-11 | 9.51e-11 | 1.0000000000 |
+
+## Monte Carlo uncertainty (`montecarlo_check.py`)
+
+Samples: 30 per variant (reference file: 1000 samples). Pipeline POD + Gaussian + 
+Savitzky-Golay, Nu with unsteady and tangential terms, uncertainties of `SJ_main_12_error.m`.
+
+| variant | quantity | mean | std | min | max |
+|---|---|---|---|---|---|
+| reference_paper_1000_samples | errorNu | 39.89 | 1.25 | 36.28 | 43.8 |
+| reference_paper_1000_samples | errorNu_p | 5.68 | 3.15 | 0.01044 | 15.93 |
+| reference_paper_1000_samples | errorNuf | 12.23 | 1.21 | 8.194 | 16.92 |
+| reference_paper_1000_samples | errorNuf_p | 7.791 | 6.16 | 0.03075 | 38.92 |
+| deterministic_adiabatic | Nu_mean | 37.8 | | | |
+| deterministic_adiabatic | Nuf_mean | 12.18 | | | |
+| python_corrected_adiabatic | errorNu | 37.47 | 1.21 | 34.82 | 39.97 |
+| python_corrected_adiabatic | errorNu_p | 2.583 | 2.05 | 0.08903 | 7.888 |
+| python_corrected_adiabatic | errorNuf | 12.13 | 1.39 | 9.116 | 15.31 |
+| python_corrected_adiabatic | errorNuf_p | 8.805 | 7.07 | 0.6478 | 25.61 |
+| deterministic_ambient | Nu_mean | 37.78 | | | |
+| deterministic_ambient | Nuf_mean | 12.18 | | | |
+| python_corrected_ambient | errorNu | 37.45 | 1.21 | 34.8 | 39.94 |
+| python_corrected_ambient | errorNu_p | 2.583 | 2.05 | 0.08908 | 7.888 |
+| python_corrected_ambient | errorNuf | 12.12 | 1.39 | 9.11 | 15.3 |
+| python_corrected_ambient | errorNuf_p | 8.805 | 7.07 | 0.6477 | 25.61 |
+| paper_replica | errorNu | 39.52 | 1.24 | 36.8 | 42.11 |
+| paper_replica | errorNu_p | 4.854 | 2.79 | 0.54 | 11.39 |
+| paper_replica | errorNuf | 12.13 | 1.39 | 9.116 | 15.31 |
+| paper_replica | errorNuf_p | 8.804 | 7.07 | 0.6438 | 25.62 |
+
+Interpretation: `errorNu` is the spatially averaged Nusselt number of each Monte Carlo sample; 
+the deterministic value is 37.80. With the corrected balance the samples scatter around it 
+(37.47 +- 1.21, i.e. a relative standard deviation of 3.2 %; the sample mean differs from the deterministic value by -0.9 %, i.e. 1.5 standard errors of a 30-sample mean). The replica of the paper-version code gives 39.52 +- 1.24 
+(+4.5 % with respect to the deterministic value), reproducing the offset of the reference file (39.89, +5.5 %). The offset is the effect of the 
+missing `sides` factor in the radiative term of that implementation (expected +5.9 % for this case), so the 
+'uncertainty of the mean Nusselt number' quoted from the reference file (`errorNu_p` = 5.7 %) is 
+dominated by this systematic offset; the propagated random uncertainty is about 3.2 % (1 sigma). 
+The uncertainty of the fluctuating component (`errorNuf_p`) is not affected by the offset.
