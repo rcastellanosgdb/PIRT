@@ -103,19 +103,27 @@ The number of modes selected by the modal filters is stored in `result.Nmod_hot`
 
 The convective heat-transfer coefficient is computed from the energy balance of the heated thin foil
 
-$$h = \frac{q''_{j} - q''_{r} - q''_{k} - q''_{u} + \sum_{n=1}^{N} q''_{\mathrm{custom},n}}{T_\mathrm{w}-T_\mathrm{aw}}$$
+```math
+h = \frac{q_j'' - q_r'' - q_k'' - q_u'' + \sum_{n=1}^{N} q_{\mathrm{custom},n}''}{T_w - T_{aw}}
+```
 
-with the Joule heating $q''_{j}=V I/A$, the radiative losses
-$q''_{r}=n_\mathrm{sides}\,\sigma \epsilon (T_{w}^4 - T_{\infty}^4)$
+with the Joule heating $`q_j'' = V I / A`$, the radiative losses
+$`q_r'' = n_{\mathrm{sides}}\, \sigma \epsilon \left(T_w^4 - T_\infty^4\right)`$
 (surroundings as a black body at the free-stream temperature), the tangential
-conduction $q''_{k} = (k + k_p)\nabla^2 T_w$ for a foil — where `k = s·λ` and
+conduction $`q_k'' = (k + k_p)\, \nabla^2 T_w`$ for a foil — where `k = s·λ` and
 `k_p = s_p·λ_p` are the conductances (thickness × conductivity) of foil and
-paint — or $q''_k = (s\lambda_x + k_p)\partial^2_x T_w + (s\lambda_y + k_p)\partial^2_y T_w$
-for a PCB ([Torre et al., 2018](https://doi.org/10.1016/j.ijheatmasstransfer.2018.06.106)),
-and the unsteady term $q''_{u} = (\rho c_p s + \rho_p c_{p,p} s_p)\,\partial T_w/\partial t$.
-$T_\mathrm{aw} = T_\mathrm{cold}\,T_{\infty,hot}/T_{\infty,cold}$.
-Nu $= h L/k_{air}(T_{film})$ with $T_{film} = (T_w + T_{\infty,hot})/2$ and
-St $= h/(\rho_\infty c_{p,\infty} U_\infty)$.
+paint — or, for a PCB ([Torre et al., 2018](https://doi.org/10.1016/j.ijheatmasstransfer.2018.06.106)),
+
+```math
+q_k'' = \left(s\, \lambda_x + k_p\right) \frac{\partial^2 T_w}{\partial x^2}
+      + \left(s\, \lambda_y + k_p\right) \frac{\partial^2 T_w}{\partial y^2},
+```
+
+and the unsteady term $`q_u'' = \left(\rho c_p s + \rho_p c_{p,p} s_p\right) \partial T_w / \partial t`$.
+The adiabatic-wall temperature is $`T_{aw} = T_{cold}\, T_{\infty,hot} / T_{\infty,cold}`$,
+the Nusselt number $`\mathrm{Nu} = h L / k_{air}(T_{film})`$ with
+$`T_{film} = (T_w + T_{\infty,hot})/2`$, and the Stanton number
+$`\mathrm{St} = h / (\rho_\infty\, c_{p,\infty}\, U_\infty)`$.
 
 The label `'CalculateHeatTransfer'` activates the module, followed by any
 combination of `'h'`, `'Nu'` and `'St'`:

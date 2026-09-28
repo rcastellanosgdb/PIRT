@@ -9,6 +9,9 @@ to obtain the convective heat-transfer coefficient, the Nusselt number and the
 Stanton number (including unsteady and tangential-conduction terms), and
 estimates their uncertainty with a Monte Carlo method.
 
+This toolbox has been tested and validated with experimental thermal images
+acquired with Telops, FLIR and InfraTec hardware.
+
 The toolbox is available in two self-contained implementations that share the
 same interface (label-based inputs), the same algorithms and the same results:
 
@@ -70,19 +73,36 @@ PIRT/
 The convective heat-transfer coefficient is obtained from the energy balance of
 the heated thin foil (Astarita & Carlomagno, 2012):
 
-$$h = \frac{q''_j - q''_r - q''_k - q''_u + \sum_n q''_{\mathrm{custom},n}}{T_w - T_{aw}}$$
+```math
+h = \frac{q_j'' - q_r'' - q_k'' - q_u'' + \sum_{n} q_{\mathrm{custom},n}''}{T_w - T_{aw}}
+```
 
-with the Joule heating $q''_j = V I / A$, the radiative losses
-$q''_r = n_{\mathrm{sides}}\,\sigma \varepsilon (T_w^4 - T_\infty^4)$, the
-tangential conduction $q''_k = (s k_f + s_p k_p)\nabla^2 T_w$ (or
-$(s\lambda_x + s_p k_p)\partial^2_x T_w + (s\lambda_y + s_p k_p)\partial^2_y T_w$
-for printed circuit boards), the unsteady term
-$q''_u = [(\rho c)_f s + (\rho c)_p s_p]\,\partial T_w/\partial t$ and
-$T_{aw} = T_{cold}\,T_{\infty,hot}/T_{\infty,cold}$. The Nusselt number is
-$\mathrm{Nu} = h L / k_{air}(T_{film})$ and the Stanton number
-$\mathrm{St} = h/(\rho_\infty c_{p,\infty} U_\infty)$.
+where the Joule heating, the radiative losses and the unsteady term are
 
-## Reference
+```math
+q_j'' = \frac{V I}{A}, \qquad
+q_r'' = n_{\mathrm{sides}}\, \sigma \varepsilon \left(T_w^4 - T_\infty^4\right), \qquad
+q_u'' = \left[(\rho c)_f\, s + (\rho c)_p\, s_p\right] \frac{\partial T_w}{\partial t},
+```
+
+and the tangential conduction is, for a thin foil or for a printed circuit board respectively,
+
+```math
+q_k'' = \left(s\, k_f + s_p\, k_p\right) \nabla^2 T_w, \qquad
+q_k'' = \left(s\, \lambda_x + s_p\, k_p\right) \frac{\partial^2 T_w}{\partial x^2}
+      + \left(s\, \lambda_y + s_p\, k_p\right) \frac{\partial^2 T_w}{\partial y^2}.
+```
+
+Here $`s`$, $`k_f`$, $`(\rho c)_f`$ are the thickness, thermal conductivity and
+volumetric heat capacity of the foil, $`s_p`$, $`k_p`$, $`(\rho c)_p`$ those of
+the paint layer, $`\lambda_x`$, $`\lambda_y`$ the in-plane conductivities of a
+printed circuit board, $`n_{\mathrm{sides}}`$ the number of faces exchanging heat
+by radiation, and $`T_{aw} = T_{cold}\, T_{\infty,hot} / T_{\infty,cold}`$ the
+adiabatic-wall temperature. The Nusselt number is
+$`\mathrm{Nu} = h L / k_{air}(T_{film})`$ and the Stanton number
+$`\mathrm{St} = h / (\rho_\infty\, c_{p,\infty}\, U_\infty)`$.
+
+## Publications
 
 If you use PIRT please cite:
 
@@ -90,6 +110,12 @@ If you use PIRT please cite:
 > heat transfer of an impinging sweeping jet: A discussion on the effect of
 > spatiotemporal filtering*, Experimental Thermal and Fluid Science 169 (2025)
 > 111526. https://doi.org/10.1016/j.expthermflusci.2025.111526
+
+The toolbox has also been employed in:
+
+> V. Duro, M. Raiola, R. Castellanos, C. Sanmiguel Vila, *Estimating the flow
+> dynamics from instantaneous wall heat transfer in an impinging sweeping jet*,
+> Experiments in Fluids (2026). https://doi.org/10.1007/s00348-026-04255-6
 
 ## Authors and license
 
